@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Reparo Offline Infiltração</title>
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-card: #1e293b;
+            --bg-input: #334155;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent-green: #10b981;
+            --accent-blue: #3b82f6;
+            --accent-amber: #f59e0b;
+            --border-color: #475569;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
+        body { background-color: var(--bg-primary); color: var(--text-main); padding: 20px 12px; min-height: 100vh; }
+        .header { max-width: 1100px; margin: 0 auto 20px auto; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; }
+        .header h1 { font-size: 1.4rem; color: var(--text-main); }
+        .header .subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
+        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 850px) { .container { grid-template-columns: 1fr; } }
+        .card { background-color: var(--bg-card); border-radius: 12px; padding: 18px; border: 1px solid var(--border-color); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
+        .card-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 14px; color: var(--accent-blue); border-bottom: 1px solid var(--border-color); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .card-actions { display: flex; gap: 6px; }
+        .form-group { margin-bottom: 10px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .form-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; }
+        label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
+        input[type="text"], input[type="number"], input[type="date"] { width: 100%; padding: 8px; background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; color: #ffffff; font-size: 0.9rem; -webkit-appearance: none; }
+        input:focus { outline: none; border-color: var(--accent-blue); }
+        .dynamic-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .dynamic-row input { flex: 1; }
+        button, .btn { cursor: pointer; touch-action: manipulation; }
+        .btn-remove { background-color: #ef4444; color: white; border: none; border-radius: 6px; padding: 0 12px; font-weight: bold; }
+        .btn-add { background-color: #3b82f6; color: white; border: none; border-radius: 6px; padding: 10px 14px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; margin-bottom: 12px; width: 100%; justify-content: center; }
+        .btn-save { background-color: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; }
+        .btn-reset { background-color: #ef4444; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; }
+        .section-subtitle { font-size: 0.85rem; font-weight: 600; color: var(--accent-amber); margin: 14px 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid var(--accent-amber); padding-left: 6px; }
+        .model-block { background-color: rgba(255, 255, 255, 0.03); padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; border: 1px solid rgba(255, 255, 255, 0.05); }
+        .model-title { font-size: 0.82rem; font-weight: bold; color: var(--accent-blue); margin-bottom: 6px; }
+        .preview-box { background-color: #0b141a; border-radius: 8px; padding: 16px; font-family: "Segoe UI", -apple-system, sans-serif; white-space: pre-wrap; word-break: break-word; font-size: 0.9rem; line-height: 1.45; color: #e9edef; border-left: 4px solid var(--accent-green); min-height: 480px; max-height: 650px; overflow-y: auto; }
+        .btn-group { display: flex; gap: 10px; margin-top: 14px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+        .btn-success { background-color: #25d366; color: #000; }
+        .btn-secondary { background-color: var(--accent-blue); color: #fff; }
+        .total-badge { background-color: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-green); color: var(--accent-green); padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; margin-top: 10px; display: flex; justify-content: space-between; }
+        .toast { position: fixed; bottom: 20px; right: 20px; background-color: var(--accent-green); color: #000; padding: 10px 20px; border-radius: 6px; font-weight: bold; display: none; z-index: 1000; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>➡️ Reparo Infiltração</h1>
+        <div class="subtitle">Histórico sincronizado na nuvem por data</div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="card-title">
+                <span>📝 Dados do Turno</span>
+                <div class="card-actions">
+                    <button type="button" class="btn-save" onclick="salvarManualmente()">💾 Salvar Dados</button>
+                    <button type="button" class="btn-reset" onclick="limparTudo()">🧹 Limpar Data</button>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label>📅 Data do Report</label>
+                    <input type="date" id="dataReport" onchange="trocarData()">
+                </div>
+                <div class="form-group">
+                    <label>⏱️ Turno</label>
+                    <input type="text" id="turno" value="TURNO A" oninput="processar()">
+                </div>
+            </div>
+
+            <div class="section-subtitle">📋 Reinspeção Padrão</div>
+            
+            <div class="model-block"><div class="model-title">EQE</div><div class="form-row"><div><label>✅ Reinspeção</label><input type="number" id="eqe_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovados</label><input type="number" id="eqe_nok" value="0" min="0" oninput="processar()"></div></div></div>
+            <div class="model-block"><div class="model-title">SONG (SA2)</div><div class="form-row"><div><label>✅ Reinspeção</label><input type="number" id="song_sa2_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="song_sa2_nok" value="0" min="0" oninput="processar()"></div></div></div>
+            <div class="model-block"><div class="model-title">KING</div><div class="form-row"><div><label>✅ Reinspeção</label><input type="number" id="king_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="king_nok" value="0" min="0" oninput="processar()"></div></div></div>
+            <div class="model-block"><div class="model-title">SONG (SA6)</div><div class="form-row"><div><label>✅ Reinspeção</label><input type="number" id="song_sa6_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="song_sa6_nok" value="0" min="0" oninput="processar()"></div></div></div>
+
+            <div class="section-subtitle">⏱️ Teste 30 Minutos (Resumo)</div>
+
+            <div class="model-block"><div class="model-title">SONG (SA6) 30 min</div><div class="form-row"><div><label>✅ Aprovado</label><input type="number" id="song_sa6_30_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="song_sa6_30_nok" value="0" min="0" oninput="processar()"></div></div></div>
+            <div class="model-block"><div class="model-title">SONG (SA2) 30 min</div><div class="form-row"><div><label>✅ Aprovado</label><input type="number" id="song_sa2_30_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="song_sa2_30_nok" value="0" min="0" oninput="processar()"></div></div></div>
+            <div class="model-block"><div class="model-title">EQE 30 min</div><div class="form-row"><div><label>✅ Aprovado</label><input type="number" id="eqe_30_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="eqe_30_nok" value="0" min="0" oninput="processar()"></div></div></div>
+            <div class="model-block"><div class="model-title">KING 30 min</div><div class="form-row"><div><label>✅ Aprovado</label><input type="number" id="king_30_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="king_30_nok" value="0" min="0" oninput="processar()"></div></div></div>
+
+            <div class="total-badge">
+                <span>🧮 Total Calculado:</span>
+                <span id="total-text">✅ 0 | ❌ 0</span>
+            </div>
+
+            <div class="section-subtitle">🔋 Início do Turno</div>
+            <div class="form-row-4">
+                <div><label>Reparo</label><input type="number" id="ini_reparo" value="0" min="0" oninput="processar()"></div>
+                <div><label>Reinspeção</label><input type="number" id="ini_reinspecao" value="0" min="0" oninput="processar()"></div>
+                <div><label>Estrada</label><input type="number" id="ini_estrada" value="0" min="0" oninput="processar()"></div>
+                <div><label>Elétrica</label><input type="number" id="ini_eletrica" value="0" min="0" oninput="processar()"></div>
+            </div>
+
+            <div class="section-subtitle">🪫 Final do Turno</div>
+            <div class="form-row-4">
+                <div><label>Reparo</label><input type="number" id="fin_reparo" value="0" min="0" oninput="processar()"></div>
+                <div><label>Reinspeção</label><input type="number" id="fin_reinspecao" value="0" min="0" oninput="processar()"></div>
+                <div><label>Estrada</label><input type="number" id="fin_estrada" value="0" min="0" oninput="processar()"></div>
+                <div><label>Elétrica</label><input type="number" id="fin_eletrica" value="0" min="0" oninput="processar()"></div>
+            </div>
+
+            <div class="section-subtitle">🔎 Veículos Auditoria 30 Minutos</div>
+            <div id="container-auditoria-30"></div>
+            <button type="button" class="btn-add" onclick="adicionarCampoAuditoria30()">➕ Adicionar Veículo</button>
+        </div>
+
+        <div>
+            <div class="card" style="position: sticky; top: 20px;">
+                <div class="card-title">📱 Pré-visualização para WhatsApp</div>
+                <div id="preview" class="preview-box"></div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-success" onclick="copiarTexto()">📋 Copiar Mensagem</button>
+                    <button type="button" class="btn btn-secondary" onclick="enviarWhatsApp()">📲 Abrir no WhatsApp</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast">Texto copiado com sucesso!</div>
+
+    <!-- CONFIGURAÇÃO DO FIREBASE (REPARO-7A859) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyD6UMqflWGdFuHbo4eaXopKoX5ABWpK1DQ",
+            authDomain: "reparo-7a859.firebaseapp.com",
+            databaseURL: "https://reparo-7a859-default-rtdb.firebaseio.com",
+            projectId: "reparo-7a859",
+            storageBucket: "reparo-7a859.firebasestorage.app",
+            messagingSenderId: "280653134419",
+            appId: "1:280653134419:web:c772c214341b3481fbe4a6",
+            measurementId: "G-Y1ENGS3MRV"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Função global para salvar no Firestore
+        window.salvarNoFirebase = async function(dataSel, dados) {
+            try {
+                await setDoc(doc(db, "reparos_offline", dataSel), {
+                    ...dados,
+                    atualizadoEm: new Date().toISOString()
+                });
+            } catch (e) {
+                console.error("Erro ao salvar no Firebase:", e);
+            }
+        };
+
+        // Função global para buscar do Firestore
+        window.carregarDoFirebase = async function(dataSel) {
+            try {
+                const docRef = doc(db, "reparos_offline", dataSel);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    return docSnap.data();
+                }
+            } catch (e) {
+                console.error("Erro ao carregar do Firebase:", e);
+            }
+            return null;
+        };
+    </script>
+
+    <script>
+        const camposIDs = ['turno', 'eqe_ok', 'eqe_nok', 'song_sa2_ok', 'song_sa2_nok', 'king_ok', 'king_nok', 'song_sa6_ok', 'song_sa6_nok', 'song_sa6_30_ok', 'song_sa6_30_nok', 'song_sa2_30_ok', 'song_sa2_30_nok', 'eqe_30_ok', 'eqe_30_nok', 'king_30_ok', 'king_30_nok', 'ini_reparo', 'ini_reinspecao', 'ini_estrada', 'ini_eletrica', 'fin_reparo', 'fin_reinspecao', 'fin_estrada', 'fin_eletrica'];
+
+        function getVal(id) { const v = parseInt(document.getElementById(id).value); return isNaN(v) ? 0 : v; }
+
+        function formatarDataBR(dataIso) {
+            if (!dataIso) return '';
+            const p = dataIso.split('-');
+            return `${p[2]}/${p[1]}/${p[0]}`;
+        }
+
+        function setHoje() {
+            const hoje = new Date();
+            const ano = hoje.getFullYear();
+            const mes = String(hoje.getMonth() + 1).padStart(2, '0');
+            const dia = String(hoje.getDate()).padStart(2, '0');
+            document.getElementById('dataReport').value = `${ano}-${mes}-${dia}`;
+        }
+
+        function adicionarCampoAuditoria30(val = '') {
+            const container = document.getElementById('container-auditoria-30');
+            const row = document.createElement('div');
+            row.className = 'dynamic-row';
+            row.innerHTML = `<input type="text" class="input-auditoria-30" value="${val}" placeholder="Ex: SA6 - VK087991 - OK" oninput="processar()"><button type="button" class="btn-remove" onclick="removerCampo(this)">✕</button>`;
+            container.appendChild(row);
+            processar();
+        }
+
+        function removerCampo(btn) { btn.parentElement.remove(); processar(); }
+
+        function extrairDados() {
+            const dados = {};
+            camposIDs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) dados[id] = el.value;
+            });
+            dados.auditoria30 = Array.from(document.querySelectorAll('.input-auditoria-30')).map(i => i.value);
+            return dados;
+        }
+
+        function salvarMemoria() {
+            const dataSel = document.getElementById('dataReport').value;
+            if (!dataSel) return;
+
+            const dados = extrairDados();
+            localStorage.setItem(`app_reparo_offline_${dataSel}`, JSON.stringify(dados));
+            
+            if (typeof window.salvarNoFirebase === 'function') {
+                window.salvarNoFirebase(dataSel, dados);
+            }
+        }
+
+        function salvarManualmente() {
+            const dataSel = document.getElementById('dataReport').value;
+            if (!dataSel) {
+                alert("Por favor, selecione uma data válida.");
+                return;
+            }
+            salvarMemoria();
+            exibirToast(`✅ Dados de ${formatarDataBR(dataSel)} salvos na nuvem!`);
+        }
+
+        async function carregarMemoria() {
+            const dataSel = document.getElementById('dataReport').value;
+            if (!dataSel) return;
+
+            document.getElementById('container-auditoria-30').innerHTML = '';
+
+            let d = null;
+
+            // Busca primeiro na nuvem
+            if (typeof window.carregarDoFirebase === 'function') {
+                d = await window.carregarDoFirebase(dataSel);
+            }
+
+            // Se não encontrar na nuvem, busca no LocalStorage
+            if (!d) {
+                const dadosSalvos = localStorage.getItem(`app_reparo_offline_${dataSel}`);
+                if (dadosSalvos) d = JSON.parse(dadosSalvos);
+            }
+
+            if (!d) {
+                camposIDs.forEach(id => {
+                    if (id !== 'turno' && document.getElementById(id)) {
+                        document.getElementById(id).value = 0;
+                    }
+                });
+                processar();
+                return;
+            }
+
+            camposIDs.forEach(id => {
+                if (d[id] !== undefined && document.getElementById(id)) {
+                    document.getElementById(id).value = d[id];
+                }
+            });
+
+            if (d.auditoria30 && d.auditoria30.length > 0) {
+                d.auditoria30.forEach(v => adicionarCampoAuditoria30(v));
+            }
+            processar();
+        }
+
+        function trocarData() {
+            carregarMemoria();
+        }
+
+        function processar() {
+            salvarMemoria();
+            const text = gerarTextoWhatsApp();
+            document.getElementById('preview').innerText = text;
+        }
+
+        function gerarTextoWhatsApp() {
+            const dataIso = document.getElementById('dataReport').value;
+            const dataBR = formatarDataBR(dataIso);
+            const turno = document.getElementById('turno').value;
+
+            const total_ok = getVal('eqe_ok') + getVal('song_sa2_ok') + getVal('king_ok') + getVal('song_sa6_ok') + getVal('song_sa6_30_ok') + getVal('song_sa2_30_ok') + getVal('eqe_30_ok') + getVal('king_30_ok');
+            const total_nok = getVal('eqe_nok') + getVal('song_sa2_nok') + getVal('king_nok') + getVal('song_sa6_nok') + getVal('song_sa6_30_nok') + getVal('song_sa2_30_nok') + getVal('eqe_30_nok') + getVal('king_30_nok');
+
+            document.getElementById('total-text').innerText = `✅ ${total_ok} | ❌ ${total_nok}`;
+
+            const auditoria30 = Array.from(document.querySelectorAll('.input-auditoria-30')).map(i => i.value.trim()).filter(v => v).join('\n');
+
+            let text = `➡️ REPARO INFILTRAÇÃO
+📅 ${dataBR} | ${turno}
+
+📋 REINSPEÇÃO PADRÃO
+• EQE: ✅ ${getVal('eqe_ok')} | ❌ ${getVal('eqe_nok')}
+• SONG (SA2): ✅ ${getVal('song_sa2_ok')} | ❌ ${getVal('song_sa2_nok')}
+• KING: ✅ ${getVal('king_ok')} | ❌ ${getVal('king_nok')}
+• SONG (SA6): ✅ ${getVal('song_sa6_ok')} | ❌ ${getVal('song_sa6_nok')}
+
+⏱️ TESTE 30 MINUTOS
+• SONG (SA6): ✅ ${getVal('song_sa6_30_ok')} | ❌ ${getVal('song_sa6_30_nok')}
+• SONG (SA2): ✅ ${getVal('song_sa2_30_ok')} | ❌ ${getVal('song_sa2_30_nok')}
+• EQE: ✅ ${getVal('eqe_30_ok')} | ❌ ${getVal('eqe_30_nok')}
+• KING: ✅ ${getVal('king_30_ok')} | ❌ ${getVal('king_30_nok')}
+
+📊 TOTAL: ✅ ${total_ok} | ❌ ${total_nok}
+
+🔋 INÍCIO DO TURNO
+• Reparo: ${getVal('ini_reparo')} | Reinspeção: ${getVal('ini_reinspecao')} | Estrada: ${getVal('ini_estrada')} | Elétrica: ${getVal('ini_eletrica')}
+
+🪫 FINAL DO TURNO
+• Reparo: ${getVal('fin_reparo')} | Reinspeção: ${getVal('fin_reinspecao')} | Estrada: ${getVal('fin_estrada')} | Elétrica: ${getVal('fin_eletrica')}`;
+
+            if (auditoria30) text += `\n\n🔎 CARROS AUDITORIA 30 MIN:\n${auditoria30}`;
+            return text;
+        }
+
+        function limparTudo() {
+            const dataSel = document.getElementById('dataReport').value;
+            if (confirm(`Deseja zerar os dados da data ${formatarDataBR(dataSel)}?`)) {
+                localStorage.removeItem(`app_reparo_offline_${dataSel}`);
+                carregarMemoria();
+            }
+        }
+
+        function copiarTexto() {
+            const texto = gerarTextoWhatsApp();
+
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(texto)
+                    .then(() => exibirToast("Texto copiado com sucesso!"))
+                    .catch(() => copiarFallbackIOS(texto));
+            } else {
+                copiarFallbackIOS(texto);
+            }
+        }
+
+        function copiarFallbackIOS(texto) {
+            try {
+                const textArea = document.createElement("textarea");
+                textArea.value = texto;
+                textArea.style.position = "fixed";
+                textArea.style.top = "0";
+                textArea.style.left = "0";
+                textArea.style.width = "2em";
+                textArea.style.height = "2em";
+                textArea.style.padding = "0";
+                textArea.style.border = "none";
+                textArea.style.outline = "none";
+                textArea.style.boxShadow = "none";
+                textArea.style.background = "transparent";
+                
+                document.body.appendChild(textArea);
+
+                if (navigator.userAgent.match(/ipad|iphone/i)) {
+                    const range = document.createRange();
+                    range.selectNodeContents(textArea);
+                    const selection = window.getSelection();
+                    selection.removeAllRanges();
+                    selection.addRange(range);
+                    textArea.setSelectionRange(0, 999999);
+                } else {
+                    textArea.focus();
+                    textArea.select();
+                }
+
+                const executado = document.execCommand('copy');
+                document.body.removeChild(textArea);
+
+                if (executado) {
+                    exibirToast("Texto copiado com sucesso!");
+                } else {
+                    alert("Selecione e copie o texto manualmente.");
+                }
+            } catch (err) {
+                alert("Erro ao copiar: " + err.message);
+            }
+        }
+
+        function exibirToast(mensagem = "Texto copiado com sucesso!") {
+            const toast = document.getElementById('toast');
+            toast.innerText = mensagem;
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 2500);
+        }
+
+        function enviarWhatsApp() {
+            const textEncoded = encodeURIComponent(gerarTextoWhatsApp());
+            window.location.href = "whatsapp://send?text=" + textEncoded;
+        }
+
+        window.onload = function() {
+            setHoje();
+            carregarMemoria();
+        };
+    </script>
+</body>
+</html>
