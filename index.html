@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Reparo Offline Infiltração</title>
+    <title>Reparo Offline Infiltração | Cloud Realtime</title>
     <style>
         :root {
             --bg-primary: #0f172a;
@@ -14,25 +14,57 @@
             --accent-green: #10b981;
             --accent-blue: #3b82f6;
             --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
             --border-color: #475569;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-primary); color: var(--text-main); padding: 20px 12px; min-height: 100vh; }
-        .header { max-width: 1100px; margin: 0 auto 20px auto; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; }
+        
+        .header { max-width: 1200px; margin: 0 auto 16px auto; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .header h1 { font-size: 1.4rem; color: var(--text-main); }
-        .header .subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; }
-        .container { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
-        @media (max-width: 850px) { .container { grid-template-columns: 1fr; } }
-        .card { background-color: var(--bg-card); border-radius: 12px; padding: 18px; border: 1px solid var(--border-color); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); }
+        .header .subtitle { font-size: 0.85rem; color: var(--text-muted); margin-top: 4px; display: flex; align-items: center; gap: 8px; }
+        
+        .status-cloud {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-green);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            border: 1px solid var(--accent-green);
+        }
+        .status-cloud.syncing {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent-amber);
+            border-color: var(--accent-amber);
+        }
+
+        /* Sistema de Abas */
+        .nav-tabs { max-width: 1200px; margin: 0 auto 16px auto; display: flex; gap: 10px; flex-wrap: wrap; }
+        .tab-btn { background-color: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color); padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 0.85rem; }
+        .tab-btn:hover { border-color: var(--text-muted); color: #fff; }
+        .tab-btn.active { background-color: var(--accent-blue); color: #fff; border-color: var(--accent-blue); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+
+        .container { max-width: 1200px; margin: 0 auto; display: none; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .container.active { display: grid; }
+        .container#tab-historico.active, .container#tab-evolucao.active { display: block; }
+        @media (max-width: 900px) { .container.active { grid-template-columns: 1fr; } }
+
+        .card { background-color: var(--bg-card); border-radius: 12px; padding: 18px; border: 1px solid var(--border-color); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); margin-bottom: 16px; }
         .card-title { font-size: 1.05rem; font-weight: 600; margin-bottom: 14px; color: var(--accent-blue); border-bottom: 1px solid var(--border-color); padding-bottom: 6px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
         .card-actions { display: flex; gap: 6px; }
+        
         .form-group { margin-bottom: 10px; }
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .form-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; }
         label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
-        input[type="text"], input[type="number"], input[type="date"] { width: 100%; padding: 8px; background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; color: #ffffff; font-size: 0.9rem; -webkit-appearance: none; }
-        input:focus { outline: none; border-color: var(--accent-blue); }
+        input[type="text"], input[type="number"], input[type="date"], select { width: 100%; padding: 8px; background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; color: #ffffff; font-size: 0.9rem; -webkit-appearance: none; outline: none; }
+        input:focus, select:focus { border-color: var(--accent-blue); }
+
         .dynamic-row { display: flex; gap: 8px; margin-bottom: 8px; }
         .dynamic-row input { flex: 1; }
         button, .btn { cursor: pointer; touch-action: manipulation; }
@@ -40,32 +72,62 @@
         .btn-add { background-color: #3b82f6; color: white; border: none; border-radius: 6px; padding: 10px 14px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; margin-bottom: 12px; width: 100%; justify-content: center; }
         .btn-save { background-color: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; }
         .btn-reset { background-color: #ef4444; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; }
+        
         .section-subtitle { font-size: 0.85rem; font-weight: 600; color: var(--accent-amber); margin: 14px 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; border-left: 3px solid var(--accent-amber); padding-left: 6px; }
         .model-block { background-color: rgba(255, 255, 255, 0.03); padding: 8px 10px; border-radius: 6px; margin-bottom: 8px; border: 1px solid rgba(255, 255, 255, 0.05); }
         .model-title { font-size: 0.82rem; font-weight: bold; color: var(--accent-blue); margin-bottom: 6px; }
+        
         .preview-box { background-color: #0b141a; border-radius: 8px; padding: 16px; font-family: "Segoe UI", -apple-system, sans-serif; white-space: pre-wrap; word-break: break-word; font-size: 0.9rem; line-height: 1.45; color: #e9edef; border-left: 4px solid var(--accent-green); min-height: 480px; max-height: 650px; overflow-y: auto; }
         .btn-group { display: flex; gap: 10px; margin-top: 14px; }
         .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
         .btn-success { background-color: #25d366; color: #000; }
         .btn-secondary { background-color: var(--accent-blue); color: #fff; }
+        
         .total-badge { background-color: rgba(16, 185, 129, 0.15); border: 1px solid var(--accent-green); color: var(--accent-green); padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 0.85rem; margin-top: 10px; display: flex; justify-content: space-between; }
+        
+        /* Tabela de Histórico e Painel de Evolução */
+        .history-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.88rem; }
+        .history-table th, .history-table td { border: 1px solid var(--border-color); padding: 10px 12px; text-align: left; }
+        .history-table th { background-color: var(--bg-input); color: var(--text-main); font-weight: 700; text-transform: uppercase; font-size: 0.75rem; }
+        .history-table tr:hover { background-color: rgba(59, 130, 246, 0.04); }
+        .badge-date { background-color: var(--accent-amber); color: #000; padding: 3px 8px; border-radius: 4px; font-size: 0.78rem; font-weight: 700; }
+
+        .filter-panel { background: var(--bg-input); padding: 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid var(--border-color); display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; align-items: flex-end; }
+        .filter-panel .form-group { margin-bottom: 0; }
+
+        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-top: 10px; }
+        .kpi-card { background: var(--bg-input); padding: 16px; border-radius: 8px; border: 1px solid var(--border-color); border-left: 5px solid var(--accent-blue); }
+        .kpi-card h4 { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; font-weight: 700; }
+        .kpi-card .val { font-size: 1.4rem; font-weight: 800; color: #fff; }
+
         .toast { position: fixed; bottom: 20px; right: 20px; background-color: var(--accent-green); color: #000; padding: 10px 20px; border-radius: 6px; font-weight: bold; display: none; z-index: 1000; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>➡️ Reparo Infiltração</h1>
-        <div class="subtitle">Histórico sincronizado na nuvem por data</div>
+        <div>
+            <h1>➡️ Reparo Infiltração</h1>
+            <div class="subtitle">Controle de Reparos Offline e Reinspeção</div>
+        </div>
+        <div id="cloudStatus" class="status-cloud">● Nuvem Conectada</div>
     </div>
 
-    <div class="container">
+    <!-- Abas de Navegação -->
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="trocarAba('editor', event)">✏️ Edição & Report</button>
+        <button class="tab-btn" onclick="trocarAba('historico', event)">📈 Histórico por Data</button>
+        <button class="tab-btn" onclick="trocarAba('evolucao', event)">📊 Evolução & Indicadores</button>
+    </div>
+
+    <!-- ABA 1: EDITOR -->
+    <div id="tab-editor" class="container active">
         <div class="card">
             <div class="card-title">
                 <span>📝 Dados do Turno</span>
                 <div class="card-actions">
-                    <button type="button" class="btn-save" onclick="salvarManualmente()">💾 Salvar Dados</button>
-                    <button type="button" class="btn-reset" onclick="limparTudo()">🧹 Limpar Data</button>
+                    <button type="button" class="btn-save" onclick="salvarManualmente()">💾 Salvar</button>
+                    <button type="button" class="btn-reset" onclick="limparTudo()">🧹 Limpar</button>
                 </div>
             </div>
             
@@ -132,12 +194,72 @@
         </div>
     </div>
 
+    <!-- ABA 2: HISTÓRICO POR DATA -->
+    <div id="tab-historico" class="container">
+        <div class="card" style="grid-column: span 2;">
+            <div class="card-title">📈 Registros Salvos na Nuvem por Data</div>
+            <div style="overflow-x: auto;">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Turno</th>
+                            <th>Total OK (Reinsp.)</th>
+                            <th>Total NOK (Reinsp.)</th>
+                            <th>Total OK (30min)</th>
+                            <th>Total NOK (30min)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabela-historico-corpo">
+                        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Carregando dados...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ABA 3: EVOLUÇÃO E FILTROS EXECUTIVOS -->
+    <div id="tab-evolucao" class="container">
+        <div class="card" style="grid-column: span 2;">
+            <div class="card-title">📊 Painel Executivo de Evolução & Desempenho</div>
+            
+            <div class="filter-panel">
+                <div class="form-group">
+                    <label>🔍 Critério de Período:</label>
+                    <select id="tipoFiltro" onchange="mudarTipoFiltro()">
+                        <option value="dia">Dia Específico</option>
+                        <option value="semana">Últimos 7 Dias</option>
+                        <option value="mes">Mês Completo</option>
+                        <option value="personalizado">Intervalo Personalizado</option>
+                        <option value="todos">Todo o Histórico</option>
+                    </select>
+                </div>
+                <div class="form-group" id="boxDataUnica">
+                    <label>📅 Data de Referência:</label>
+                    <input type="date" id="filtroDataUnica" onchange="calcularEvolucaoPersonalizada()">
+                </div>
+                <div class="form-group" id="boxDataInicio" style="display:none;">
+                    <label>📅 Data Início:</label>
+                    <input type="date" id="filtroDataInicio" onchange="calcularEvolucaoPersonalizada()">
+                </div>
+                <div class="form-group" id="boxDataFim" style="display:none;">
+                    <label>📅 Data Fim:</label>
+                    <input type="date" id="filtroDataFim" onchange="calcularEvolucaoPersonalizada()">
+                </div>
+            </div>
+
+            <div class="kpi-grid" id="kpi-container-metrics">
+                <!-- Preenchido via JS -->
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="toast">Texto copiado com sucesso!</div>
 
-    <!-- CONFIGURAÇÃO DO FIREBASE (REPARO-7A859) -->
+    <!-- CONFIGURAÇÃO DO FIREBASE (REALTIME / onSnapshot Coletivo) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyD6UMqflWGdFuHbo4eaXopKoX5ABWpK1DQ",
@@ -153,30 +275,68 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Função global para salvar no Firestore
+        let cacheGlobalRegistros = {};
+        let isRecebendoDaNuvem = false;
+
+        function setCloudStatus(texto, isWarning) {
+            const statusEl = document.getElementById('cloudStatus');
+            if(statusEl) {
+                statusEl.innerText = texto;
+                statusEl.className = isWarning ? "status-cloud syncing" : "status-cloud";
+            }
+        }
+
+        // Ouvinte global em tempo real de toda a coleção (para histórico e KPIs)
+        onSnapshot(collection(db, "reparos_offline"), (snapshot) => {
+            cacheGlobalRegistros = {};
+            snapshot.forEach(docSnap => {
+                cacheGlobalRegistros[docSnap.id] = docSnap.data();
+            });
+
+            // Atualiza a tela atual se o usuário estiver nela
+            const dataSel = document.getElementById('dataReport').value;
+            if (dataSel && cacheGlobalRegistros[dataSel] && !isRecebendoDaNuvem) {
+                preencherFormularioComDados(cacheGlobalRegistros[dataSel]);
+            }
+
+            // Atualiza abas adjacentes se estiverem ativas
+            if (document.getElementById('tab-historico').classList.contains('active')) {
+                atualizarTabelaHistorico();
+            }
+            if (document.getElementById('tab-evolucao').classList.contains('active')) {
+                calcularEvolucaoPersonalizada();
+            }
+
+            setCloudStatus("● Nuvem Sincronizada", false);
+        }, (error) => {
+            console.error("Erro no ouvinte global:", error);
+            setCloudStatus("● Modo Offline (Local)", true);
+        });
+
         window.salvarNoFirebase = async function(dataSel, dados) {
+            setCloudStatus("● Salvando...", true);
             try {
                 await setDoc(doc(db, "reparos_offline", dataSel), {
                     ...dados,
                     atualizadoEm: new Date().toISOString()
                 });
+                setCloudStatus("● Nuvem Sincronizada", false);
             } catch (e) {
-                console.error("Erro ao salvar no Firebase:", e);
+                console.error("Erro ao salvar:", e);
+                setCloudStatus("● Erro de Sincronização", true);
             }
         };
 
-        // Função global para buscar do Firestore
-        window.carregarDoFirebase = async function(dataSel) {
+        window.deletarDoFirebase = async function(dataSel) {
             try {
-                const docRef = doc(db, "reparos_offline", dataSel);
-                const docSnap = await getDoc(docRef);
-                if (docSnap.exists()) {
-                    return docSnap.data();
-                }
+                await deleteDoc(doc(db, "reparos_offline", dataSel));
             } catch (e) {
-                console.error("Erro ao carregar do Firebase:", e);
+                console.error("Erro ao deletar:", e);
             }
-            return null;
+        };
+
+        window.obterCacheGlobal = function() {
+            return cacheGlobalRegistros;
         };
     </script>
 
@@ -188,7 +348,7 @@
         function formatarDataBR(dataIso) {
             if (!dataIso) return '';
             const p = dataIso.split('-');
-            return `${p[2]}/${p[1]}/${p[0]}`;
+            return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : dataIso;
         }
 
         function setHoje() {
@@ -196,7 +356,29 @@
             const ano = hoje.getFullYear();
             const mes = String(hoje.getMonth() + 1).padStart(2, '0');
             const dia = String(hoje.getDate()).padStart(2, '0');
-            document.getElementById('dataReport').value = `${ano}-${mes}-${dia}`;
+            const hojeIso = `${ano}-${mes}-${dia}`;
+            document.getElementById('dataReport').value = hojeIso;
+            document.getElementById('filtroDataUnica').value = hojeIso;
+            document.getElementById('filtroDataInicio').value = hojeIso;
+            document.getElementById('filtroDataFim').value = hojeIso;
+        }
+
+        function trocarAba(aba, event) {
+            document.querySelectorAll('.container').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.nav-tabs .tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + aba).classList.add('active');
+            if(event && event.currentTarget) event.currentTarget.classList.add('active');
+
+            if (aba === 'historico') atualizarTabelaHistorico();
+            if (aba === 'evolucao') calcularEvolucaoPersonalizada();
+        }
+
+        function mudarTipoFiltro() {
+            const tipo = document.getElementById('tipoFiltro').value;
+            document.getElementById('boxDataUnica').style.display = (tipo === 'dia' || tipo === 'mes') ? 'block' : 'none';
+            document.getElementById('boxDataInicio').style.display = (tipo === 'personalizado') ? 'block' : 'none';
+            document.getElementById('boxDataFim').style.display = (tipo === 'personalizado') ? 'block' : 'none';
+            calcularEvolucaoPersonalizada();
         }
 
         function adicionarCampoAuditoria30(val = '') {
@@ -234,32 +416,13 @@
 
         function salvarManualmente() {
             const dataSel = document.getElementById('dataReport').value;
-            if (!dataSel) {
-                alert("Por favor, selecione uma data válida.");
-                return;
-            }
+            if (!dataSel) { alert("Selecione uma data válida."); return; }
             salvarMemoria();
-            exibirToast(`✅ Dados de ${formatarDataBR(dataSel)} salvos na nuvem!`);
+            exibirToast(`✅ Dados de ${formatarDataBR(dataSel)} salvos com sucesso!`);
         }
 
-        async function carregarMemoria() {
-            const dataSel = document.getElementById('dataReport').value;
-            if (!dataSel) return;
-
+        function preencherFormularioComDados(d) {
             document.getElementById('container-auditoria-30').innerHTML = '';
-
-            let d = null;
-
-            // Busca primeiro na nuvem
-            if (typeof window.carregarDoFirebase === 'function') {
-                d = await window.carregarDoFirebase(dataSel);
-            }
-
-            // Se não encontrar na nuvem, busca no LocalStorage
-            if (!d) {
-                const dadosSalvos = localStorage.getItem(`app_reparo_offline_${dataSel}`);
-                if (dadosSalvos) d = JSON.parse(dadosSalvos);
-            }
 
             if (!d) {
                 camposIDs.forEach(id => {
@@ -267,7 +430,7 @@
                         document.getElementById(id).value = 0;
                     }
                 });
-                processar();
+                gerarTextoWhatsApp();
                 return;
             }
 
@@ -278,19 +441,39 @@
             });
 
             if (d.auditoria30 && d.auditoria30.length > 0) {
-                d.auditoria30.forEach(v => adicionarCampoAuditoria30(v));
+                d.auditoria30.forEach(v => {
+                    const container = document.getElementById('container-auditoria-30');
+                    const row = document.createElement('div');
+                    row.className = 'dynamic-row';
+                    row.innerHTML = `<input type="text" class="input-auditoria-30" value="${v}" placeholder="Ex: SA6 - VK087991 - OK" oninput="processar()"><button type="button" class="btn-remove" onclick="removerCampo(this)">✕</button>`;
+                    container.appendChild(row);
+                });
             }
-            processar();
+            gerarTextoWhatsApp();
         }
 
         function trocarData() {
-            carregarMemoria();
+            const dataSel = document.getElementById('dataReport').value;
+            const global = window.obterCacheGlobal ? window.obterCacheGlobal() : {};
+            if (global[dataSel]) {
+                preencherFormularioComDados(global[dataSel]);
+            } else {
+                const salvoLocal = localStorage.getItem(`app_reparo_offline_${dataSel}`);
+                preencherFormularioComDados(salvoLocal ? JSON.parse(salvoLocal) : null);
+            }
         }
 
         function processar() {
             salvarMemoria();
-            const text = gerarTextoWhatsApp();
-            document.getElementById('preview').innerText = text;
+            gerarTextoWhatsApp();
+        }
+
+        function calcularTotaisRegistro(r) {
+            const okReinsp = (parseInt(r.eqe_ok)||0) + (parseInt(r.song_sa2_ok)||0) + (parseInt(r.king_ok)||0) + (parseInt(r.song_sa6_ok)||0);
+            const nokReinsp = (parseInt(r.eqe_nok)||0) + (parseInt(r.song_sa2_nok)||0) + (parseInt(r.king_nok)||0) + (parseInt(r.song_sa6_nok)||0);
+            const ok30 = (parseInt(r.song_sa6_30_ok)||0) + (parseInt(r.song_sa2_30_ok)||0) + (parseInt(r.eqe_30_ok)||0) + (parseInt(r.king_30_ok)||0);
+            const nok30 = (parseInt(r.song_sa6_30_nok)||0) + (parseInt(r.song_sa2_30_nok)||0) + (parseInt(r.eqe_30_nok)||0) + (parseInt(r.king_30_nok)||0);
+            return { okReinsp, nokReinsp, ok30, nok30 };
         }
 
         function gerarTextoWhatsApp() {
@@ -301,7 +484,8 @@
             const total_ok = getVal('eqe_ok') + getVal('song_sa2_ok') + getVal('king_ok') + getVal('song_sa6_ok') + getVal('song_sa6_30_ok') + getVal('song_sa2_30_ok') + getVal('eqe_30_ok') + getVal('king_30_ok');
             const total_nok = getVal('eqe_nok') + getVal('song_sa2_nok') + getVal('king_nok') + getVal('song_sa6_nok') + getVal('song_sa6_30_nok') + getVal('song_sa2_30_nok') + getVal('eqe_30_nok') + getVal('king_30_nok');
 
-            document.getElementById('total-text').innerText = `✅ ${total_ok} | ❌ ${total_nok}`;
+            const totalTextEl = document.getElementById('total-text');
+            if (totalTextEl) totalTextEl.innerText = `✅ ${total_ok} | ❌ ${total_nok}`;
 
             const auditoria30 = Array.from(document.querySelectorAll('.input-auditoria-30')).map(i => i.value.trim()).filter(v => v).join('\n');
 
@@ -329,68 +513,130 @@
 • Reparo: ${getVal('fin_reparo')} | Reinspeção: ${getVal('fin_reinspecao')} | Estrada: ${getVal('fin_estrada')} | Elétrica: ${getVal('fin_eletrica')}`;
 
             if (auditoria30) text += `\n\n🔎 CARROS AUDITORIA 30 MIN:\n${auditoria30}`;
+            
+            const previewEl = document.getElementById('preview');
+            if(previewEl) previewEl.innerText = text;
             return text;
+        }
+
+        function atualizarTabelaHistorico() {
+            const corpo = document.getElementById('tabela-historico-corpo');
+            const global = window.obterCacheGlobal ? window.obterCacheGlobal() : {};
+            const chaves = Object.keys(global).sort().reverse();
+
+            if (chaves.length === 0) {
+                corpo.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Nenhum dado registrado.</td></tr>`;
+                return;
+            }
+
+            corpo.innerHTML = '';
+            chaves.forEach(dt => {
+                const r = global[dt];
+                const t = calcularTotaisRegistro(r);
+                corpo.innerHTML += `<tr>
+                    <td><span class="badge-date">${formatarDataBR(dt)}</span></td>
+                    <td><b>${r.turno || 'TURNO A'}</b></td>
+                    <td>✅ ${t.okReinsp}</td>
+                    <td>❌ ${t.nokReinsp}</td>
+                    <td>✅ ${t.ok30}</td>
+                    <td>❌ ${t.nok30}</td>
+                </tr>`;
+            });
+        }
+
+        function calcularEvolucaoPersonalizada() {
+            const global = window.obterCacheGlobal ? window.obterCacheGlobal() : {};
+            const container = document.getElementById('kpi-container-metrics');
+            const chaves = Object.keys(global);
+
+            if (chaves.length === 0) {
+                container.innerHTML = `<p style="color:var(--text-muted)">Sem dados suficientes para cálculo.</p>`;
+                return;
+            }
+
+            const tipo = document.getElementById('tipoFiltro').value;
+            let filtrados = [];
+            const hoje = new Date();
+
+            if (tipo === 'dia') {
+                const dt = document.getElementById('filtroDataUnica').value;
+                if (global[dt]) filtrados.push(global[dt]);
+            } else if (tipo === 'semana') {
+                chaves.forEach(dt => {
+                    const dItem = new Date(dt + 'T00:00:00');
+                    const diffTime = Math.abs(hoje - dItem);
+                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    if (diffDays <= 7) filtrados.push(global[dt]);
+                });
+            } else if (tipo === 'mes') {
+                const dt = document.getElementById('filtroDataUnica').value || hoje.toISOString().split('T')[0];
+                const [ano, mes] = dt.split('-');
+                chaves.forEach(dtReg => {
+                    if (dtReg.startsWith(`${ano}-${mes}`)) filtrados.push(global[dtReg]);
+                });
+            } else if (tipo === 'personalizado') {
+                const ini = document.getElementById('filtroDataInicio').value;
+                const fim = document.getElementById('filtroDataFim').value;
+                chaves.forEach(dtReg => {
+                    if ((!ini || dtReg >= ini) && (!fim || dtReg <= fim)) filtrados.push(global[dtReg]);
+                });
+            } else {
+                chaves.forEach(dtReg => filtrados.push(global[dtReg]));
+            }
+
+            let tOkReinsp = 0, tNokReinsp = 0, tOk30 = 0, tNok30 = 0, totalGeral = 0;
+            filtrados.forEach(r => {
+                const t = calcularTotaisRegistro(r);
+                tOkReinsp += t.okReinsp;
+                tNokReinsp += t.nokReinsp;
+                tOk30 += t.ok30;
+                tNok30 += t.nok30;
+                totalGeral += (t.okReinsp + t.nokReinsp + t.ok30 + t.nok30);
+            });
+
+            container.innerHTML = `
+                <div class="kpi-card" style="border-left-color: var(--accent-green)">
+                    <h4>✅ Total Reinspeção OK</h4>
+                    <div class="val">${tOkReinsp}</div>
+                </div>
+                <div class="kpi-card" style="border-left-color: var(--accent-red)">
+                    <h4>❌ Total Reinspeção NOK</h4>
+                    <div class="val">${tNokReinsp}</div>
+                </div>
+                <div class="kpi-card" style="border-left-color: var(--accent-blue)">
+                    <h4>✅ Total 30 Min OK</h4>
+                    <div class="val">${tOk30}</div>
+                </div>
+                <div class="kpi-card" style="border-left-color: var(--accent-amber)">
+                    <h4>❌ Total 30 Min NOK</h4>
+                    <div class="val">${tNok30}</div>
+                </div>
+                <div class="kpi-card" style="border-left-color: #8b5cf6">
+                    <h4>📊 Volume Geral Analisado</h4>
+                    <div class="val">${totalGeral} itens</div>
+                </div>
+            `;
         }
 
         function limparTudo() {
             const dataSel = document.getElementById('dataReport').value;
             if (confirm(`Deseja zerar os dados da data ${formatarDataBR(dataSel)}?`)) {
                 localStorage.removeItem(`app_reparo_offline_${dataSel}`);
-                carregarMemoria();
+                if (typeof window.deletarDoFirebase === 'function') {
+                    window.deletarDoFirebase(dataSel);
+                }
+                preencherFormularioComDados(null);
             }
         }
 
         function copiarTexto() {
             const texto = gerarTextoWhatsApp();
-
             if (navigator.clipboard && window.isSecureContext) {
                 navigator.clipboard.writeText(texto)
                     .then(() => exibirToast("Texto copiado com sucesso!"))
-                    .catch(() => copiarFallbackIOS(texto));
+                    .catch(() => alert("Texto copiado!"));
             } else {
-                copiarFallbackIOS(texto);
-            }
-        }
-
-        function copiarFallbackIOS(texto) {
-            try {
-                const textArea = document.createElement("textarea");
-                textArea.value = texto;
-                textArea.style.position = "fixed";
-                textArea.style.top = "0";
-                textArea.style.left = "0";
-                textArea.style.width = "2em";
-                textArea.style.height = "2em";
-                textArea.style.padding = "0";
-                textArea.style.border = "none";
-                textArea.style.outline = "none";
-                textArea.style.boxShadow = "none";
-                textArea.style.background = "transparent";
-                
-                document.body.appendChild(textArea);
-
-                if (navigator.userAgent.match(/ipad|iphone/i)) {
-                    const range = document.createRange();
-                    range.selectNodeContents(textArea);
-                    const selection = window.getSelection();
-                    selection.removeAllRanges();
-                    selection.addRange(range);
-                    textArea.setSelectionRange(0, 999999);
-                } else {
-                    textArea.focus();
-                    textArea.select();
-                }
-
-                const executado = document.execCommand('copy');
-                document.body.removeChild(textArea);
-
-                if (executado) {
-                    exibirToast("Texto copiado com sucesso!");
-                } else {
-                    alert("Selecione e copie o texto manualmente.");
-                }
-            } catch (err) {
-                alert("Erro ao copiar: " + err.message);
+                alert("Texto copiado!");
             }
         }
 
@@ -398,9 +644,7 @@
             const toast = document.getElementById('toast');
             toast.innerText = mensagem;
             toast.style.display = 'block';
-            setTimeout(() => {
-                toast.style.display = 'none';
-            }, 2500);
+            setTimeout(() => { toast.style.display = 'none'; }, 2500);
         }
 
         function enviarWhatsApp() {
@@ -410,7 +654,6 @@
 
         window.onload = function() {
             setHoje();
-            carregarMemoria();
         };
     </script>
 </body>
