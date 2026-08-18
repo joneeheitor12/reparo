@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Reparo Offline Infiltração | Cloud Realtime</title>
+    <!-- Biblioteca SheetJS para manipulação e exportação de Excel (.xlsx) -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
     <style>
         :root {
             --bg-primary: #0f172a;
@@ -42,6 +45,23 @@
             color: var(--accent-amber);
             border-color: var(--accent-amber);
         }
+
+        .header-tools { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .btn-tool {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            color: #fff;
+            background-color: var(--accent-green);
+            transition: opacity 0.2s;
+        }
+        .btn-tool:hover { opacity: 0.9; }
 
         /* Sistema de Abas */
         .nav-tabs { max-width: 1200px; margin: 0 auto 16px auto; display: flex; gap: 10px; flex-wrap: wrap; }
@@ -100,6 +120,16 @@
         .kpi-card h4 { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px; font-weight: 700; }
         .kpi-card .val { font-size: 1.4rem; font-weight: 800; color: #fff; }
 
+        /* Modal de Exportação */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); display: none; justify-content: center; align-items: center; z-index: 9999; }
+        .modal-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 24px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.4); width: 90%; max-width: 420px; border-top: 5px solid var(--accent-green); }
+        .modal-card h3 { margin: 0 0 14px 0; font-size: 1.1rem; color: #fff; }
+        .modal-card label { display: block; font-size: 0.8rem; font-weight: bold; margin-bottom: 6px; color: var(--text-muted); }
+        .modal-card select, .modal-card input { width: 100%; margin-bottom: 14px; }
+        .modal-buttons { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; }
+        .btn-modal-cancel { background: var(--bg-input); color: #fff; border: 1px solid var(--border-color); padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        .btn-modal-confirm { background: var(--accent-green); color: #000; border: none; padding: 8px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; }
+
         .toast { position: fixed; bottom: 20px; right: 20px; background-color: var(--accent-green); color: #000; padding: 10px 20px; border-radius: 6px; font-weight: bold; display: none; z-index: 1000; }
     </style>
 </head>
@@ -110,7 +140,11 @@
             <h1>➡️ Reparo Infiltração</h1>
             <div class="subtitle">Controle de Reparos Offline e Reinspeção</div>
         </div>
-        <div id="cloudStatus" class="status-cloud">● Nuvem Conectada</div>
+        
+        <div class="header-tools">
+            <button class="btn-tool" onclick="abrirModalExportacao()">📊 Exportar Excel</button>
+            <div id="cloudStatus" class="status-cloud">● Nuvem Conectada</div>
+        </div>
     </div>
 
     <!-- Abas de Navegação -->
@@ -254,6 +288,38 @@
         </div>
     </div>
 
+    <!-- Modal de Exportação para Excel -->
+    <div id="modalExport" class="modal-overlay">
+        <div class="modal-card">
+            <h3>📊 Exportar Relatório para Excel</h3>
+            
+            <label>Selecione o período para extrair:</label>
+            <select id="exportPeriodoOpcao" onchange="tratarOpcaoModalExport()">
+                <option value="DIA_SELECIONADO">Apenas o Dia Selecionado na Edição</option>
+                <option value="HOJE">Lançamentos de Hoje</option>
+                <option value="MES_ATUAL">Todo Este Mês</option>
+                <option value="INTERVALO">Intervalo de Datas (De / Até)</option>
+                <option value="TODOS">Todo o Histórico Acumulado</option>
+            </select>
+
+            <div id="wrapExportIntervalo" style="display: none; gap: 8px;">
+                <div style="flex:1;">
+                    <label>Data Início:</label>
+                    <input type="date" id="exportDataInicio">
+                </div>
+                <div style="flex:1;">
+                    <label>Data Fim:</label>
+                    <input type="date" id="exportDataFim">
+                </div>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-modal-cancel" onclick="fecharModalExportacao()">Cancelar</button>
+                <button class="btn-modal-confirm" onclick="executarExportacaoExcel()">📥 Baixar Planilha (.xlsx)</button>
+            </div>
+        </div>
+    </div>
+
     <div id="toast" class="toast">Texto copiado com sucesso!</div>
 
     <!-- CONFIGURAÇÃO DO FIREBASE (REALTIME / onSnapshot Coletivo) -->
@@ -286,20 +352,18 @@
             }
         }
 
-        // Ouvinte global em tempo real de toda a coleção (para histórico e KPIs)
+        // Ouvinte global em tempo real
         onSnapshot(collection(db, "reparos_offline"), (snapshot) => {
             cacheGlobalRegistros = {};
             snapshot.forEach(docSnap => {
                 cacheGlobalRegistros[docSnap.id] = docSnap.data();
             });
 
-            // Atualiza a tela atual se o usuário estiver nela
             const dataSel = document.getElementById('dataReport').value;
             if (dataSel && cacheGlobalRegistros[dataSel] && !isRecebendoDaNuvem) {
                 preencherFormularioComDados(cacheGlobalRegistros[dataSel]);
             }
 
-            // Atualiza abas adjacentes se estiverem ativas
             if (document.getElementById('tab-historico').classList.contains('active')) {
                 atualizarTabelaHistorico();
             }
@@ -307,7 +371,7 @@
                 calcularEvolucaoPersonalizada();
             }
 
-            setCloudStatus("● Nuvem Sincronizada", false);
+            setCloudStatus("● Nuvem Conectada", false);
         }, (error) => {
             console.error("Erro no ouvinte global:", error);
             setCloudStatus("● Modo Offline (Local)", true);
@@ -320,7 +384,7 @@
                     ...dados,
                     atualizadoEm: new Date().toISOString()
                 });
-                setCloudStatus("● Nuvem Sincronizada", false);
+                setCloudStatus("● Nuvem Conectada", false);
             } catch (e) {
                 console.error("Erro ao salvar:", e);
                 setCloudStatus("● Erro de Sincronização", true);
@@ -351,16 +415,22 @@
             return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : dataIso;
         }
 
-        function setHoje() {
+        function obterDataAtualFormatada() {
             const hoje = new Date();
             const ano = hoje.getFullYear();
             const mes = String(hoje.getMonth() + 1).padStart(2, '0');
             const dia = String(hoje.getDate()).padStart(2, '0');
-            const hojeIso = `${ano}-${mes}-${dia}`;
+            return `${ano}-${mes}-${dia}`;
+        }
+
+        function setHoje() {
+            const hojeIso = obterDataAtualFormatada();
             document.getElementById('dataReport').value = hojeIso;
             document.getElementById('filtroDataUnica').value = hojeIso;
             document.getElementById('filtroDataInicio').value = hojeIso;
             document.getElementById('filtroDataFim').value = hojeIso;
+            document.getElementById('exportDataInicio').value = hojeIso;
+            document.getElementById('exportDataFim').value = hojeIso;
         }
 
         function trocarAba(aba, event) {
@@ -616,6 +686,101 @@
                     <div class="val">${totalGeral} itens</div>
                 </div>
             `;
+        }
+
+        // Funções para Exportar Excel via Modal
+        function abrirModalExportacao() {
+            document.getElementById('modalExport').style.display = 'flex';
+            tratarOpcaoModalExport();
+        }
+
+        function fecharModalExportacao() {
+            document.getElementById('modalExport').style.display = 'none';
+        }
+
+        function tratarOpcaoModalExport() {
+            const opc = document.getElementById('exportPeriodoOpcao').value;
+            document.getElementById('wrapExportIntervalo').style.display = (opc === 'INTERVALO') ? 'flex' : 'none';
+        }
+
+        function executarExportacaoExcel() {
+            const opc = document.getElementById('exportPeriodoOpcao').value;
+            const global = window.obterCacheGlobal ? window.obterCacheGlobal() : {};
+            const chaves = Object.keys(global);
+            const hoje = new Date();
+            let listaFinal = [];
+            let nomeSufixo = "";
+
+            let chavesFiltradas = [];
+
+            if (opc === 'DIA_SELECIONADO') {
+                const dt = document.getElementById('dataReport').value;
+                if (dt) chavesFiltradas.push(dt);
+                nomeSufixo = `Dia_${dt}`;
+            } else if (opc === 'HOJE') {
+                const hojeStr = obterDataAtualFormatada();
+                chavesFiltradas.push(hojeStr);
+                nomeSufixo = `Hoje_${hojeStr}`;
+            } else if (opc === 'MES_ATUAL') {
+                const anoMes = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, '0')}`;
+                chaves.forEach(dt => { if (dt.startsWith(anoMes)) chavesFiltradas.push(dt); });
+                nomeSufixo = `Mes_${anoMes}`;
+            } else if (opc === 'INTERVALO') {
+                const dtIni = document.getElementById('exportDataInicio').value;
+                const dtFim = document.getElementById('exportDataFim').value;
+                if (!dtIni || !dtFim) { alert("Preencha as datas de Início e Fim!"); return; }
+                chaves.forEach(dt => { if (dt >= dtIni && dt <= dtFim) chavesFiltradas.push(dt); });
+                nomeSufixo = `${dtIni}_a_${dtFim}`;
+            } else {
+                chavesFiltradas = chaves;
+                nomeSufixo = "Historico_Geral";
+            }
+
+            chavesFiltradas.sort().forEach(dt => {
+                const r = global[dt];
+                if (r) {
+                    listaFinal.push({
+                        "Data": formatarDataBR(dt),
+                        "Turno": r.turno || "TURNO A",
+                        "EQE (OK)": r.eqe_ok || 0,
+                        "EQE (NOK)": r.eqe_nok || 0,
+                        "SONG SA2 (OK)": r.song_sa2_ok || 0,
+                        "SONG SA2 (NOK)": r.song_sa2_nok || 0,
+                        "KING (OK)": r.king_ok || 0,
+                        "KING (NOK)": r.king_nok || 0,
+                        "SONG SA6 (OK)": r.song_sa6_ok || 0,
+                        "SONG SA6 (NOK)": r.song_sa6_nok || 0,
+                        "SONG SA6 30min (OK)": r.song_sa6_30_ok || 0,
+                        "SONG SA6 30min (NOK)": r.song_sa6_30_nok || 0,
+                        "SONG SA2 30min (OK)": r.song_sa2_30_ok || 0,
+                        "SONG SA2 30min (NOK)": r.song_sa2_30_nok || 0,
+                        "EQE 30min (OK)": r.eqe_30_ok || 0,
+                        "EQE 30min (NOK)": r.eqe_30_nok || 0,
+                        "KING 30min (OK)": r.king_30_ok || 0,
+                        "KING 30min (NOK)": r.king_30_nok || 0,
+                        "Início Reparo": r.ini_reparo || 0,
+                        "Início Reinspeção": r.ini_reinspecao || 0,
+                        "Início Estrada": r.ini_estrada || 0,
+                        "Início Elétrica": r.ini_eletrica || 0,
+                        "Fim Reparo": r.fin_reparo || 0,
+                        "Fim Reinspeção": r.fin_reinspecao || 0,
+                        "Fim Estrada": r.fin_estrada || 0,
+                        "Fim Elétrica": r.fin_eletrica || 0
+                    });
+                }
+            });
+
+            if (listaFinal.length === 0) {
+                alert("Nenhum lançamento encontrado para o período selecionado.");
+                return;
+            }
+
+            const planilha = XLSX.utils.json_to_sheet(listaFinal);
+            const livro = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(livro, planilha, "Reparos Offline");
+
+            XLSX.writeFile(livro, `Relatorio_Reparo_Infiltracao_${nomeSufixo}.xlsx`);
+            fecharModalExportacao();
         }
 
         function limparTudo() {
