@@ -478,16 +478,17 @@
             const row = document.createElement('div');
             row.className = 'dynamic-row-card';
 
-            const modeloSel = dadosItem ? dadosItem.modelo || 'SA2' : 'SA2';
+            const modeloSel = dadosItem ? dadosItem.modelo || '' : '';
             const chassiVal = dadosItem ? dadosItem.chassi || '' : '';
-            let tempoSel = dadosItem ? dadosItem.tempo || '30 min' : '30 min';
-            tempoSel = tempoSel.replace(' min', '').trim() + ' min';
+            let tempoSel = dadosItem ? dadosItem.tempo || '' : '';
+            if(tempoSel) tempoSel = tempoSel.replace(' min', '').trim() + ' min';
 
             const statusSel = dadosItem ? dadosItem.status || 'OK' : 'OK';
             const motivoVal = dadosItem ? dadosItem.motivo || '' : '';
 
             row.innerHTML = `
                 <select class="aud-modelo">
+                    <option value="" disabled ${!modeloSel?'selected':''}>Selecione o Modelo</option>
                     <option value="SA2" ${modeloSel==='SA2'?'selected':''}>SA2</option>
                     <option value="SA6" ${modeloSel==='SA6'?'selected':''}>SA6</option>
                     <option value="HA2" ${modeloSel==='HA2'?'selected':''}>HA2</option>
@@ -498,6 +499,7 @@
                 </select>
                 <input type="text" class="aud-chassi" value="${chassiVal}" placeholder="VIN">
                 <select class="aud-tempo">
+                    <option value="" disabled ${!tempoSel?'selected':''}>Selecione o Tempo</option>
                     <option value="5 min" ${tempoSel==='5 min'?'selected':''}>5 min</option>
                     <option value="10 min" ${tempoSel==='10 min'?'selected':''}>10 min</option>
                     <option value="15 min" ${tempoSel==='15 min'?'selected':''}>15 min</option>
@@ -632,7 +634,6 @@
             let okReinsp = (parseInt(r.eqe_ok)||0) + (parseInt(r.song_sa2_ok)||0) + (parseInt(r.king_ok)||0) + (parseInt(r.song_sa6_ok)||0);
             let nokReinsp = (parseInt(r.eqe_nok)||0) + (parseInt(r.song_sa2_nok)||0) + (parseInt(r.king_nok)||0) + (parseInt(r.song_sa6_nok)||0);
 
-            // Soma também os veículos de auditoria inseridos dinamicamente
             if (r.auditoria30Objs && Array.isArray(r.auditoria30Objs)) {
                 r.auditoria30Objs.forEach(item => {
                     if (item.status === 'OK') okReinsp++;
@@ -647,7 +648,6 @@
             const dataBR = formatarDataBR(dataIso);
             const turno = document.getElementById('turno').value;
 
-            // Soma Reinspeção padrão + Auditoria dinâmica de veículos
             let total_ok = getVal('eqe_ok') + getVal('song_sa2_ok') + getVal('king_ok') + getVal('song_sa6_ok');
             let total_nok = getVal('eqe_nok') + getVal('song_sa2_nok') + getVal('king_nok') + getVal('song_sa6_nok');
 
@@ -663,7 +663,7 @@
                 else if (st === 'NOK') total_nok++;
 
                 if (ch) {
-                    let linha = `• ${mod}:${ch} - ${tp} - ${st}`;
+                    let linha = `• ${mod ? mod + ':' : ''}${ch} - ${tp || '30 min'} - ${st}`;
                     if (st === 'NOK' && mot) linha += ` (${mot})`;
                     auditTextArr.push(linha);
                 }
@@ -857,7 +857,7 @@
 
                     if (r.auditoria30Objs && r.auditoria30Objs.length > 0) {
                         r.auditoria30Objs.forEach((item, index) => {
-                            baseObj[`Auditoria Veículo ${index+1}`] = `${item.modelo} - ${item.chassi} - ${item.tempo} - ${item.status}${item.motivo ? ' ('+item.motivo+')' : ''}`;
+                            baseObj[`Auditoria Veículo ${index+1}`] = `${item.modelo || ''} - ${item.chassi} - ${item.tempo || ''} - ${item.status}${item.motivo ? ' ('+item.motivo+')' : ''}`;
                         });
                     }
 
