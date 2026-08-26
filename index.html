@@ -524,25 +524,27 @@
                 </div>
             `;
 
-            // Tratamento isolado e seguro para disparar alteração sem bloquear os selects
+            // Eventos limpos que disparam o processamento sem bloquear os selects
+            const modeloSelect = row.querySelector('.aud-modelo');
+            const tempoSelect = row.querySelector('.aud-tempo');
             const statusSelect = row.querySelector('.aud-status');
+            const chassiInput = row.querySelector('.aud-chassi');
+            const motivoInput = row.querySelector('.aud-motivo');
             const boxNok = row.querySelector('.dynamic-row-nok-box');
+
+            modeloSelect.addEventListener('change', () => processar());
+            tempoSelect.addEventListener('change', () => processar());
+            chassiInput.addEventListener('input', () => processar());
+            motivoInput.addEventListener('input', () => processar());
 
             statusSelect.addEventListener('change', () => {
                 if (statusSelect.value === 'NOK') {
                     boxNok.style.display = 'block';
                 } else {
                     boxNok.style.display = 'none';
-                    boxNok.querySelector('.aud-motivo').value = '';
+                    motivoInput.value = '';
                 }
                 processar();
-            });
-
-            row.querySelectorAll('input, select').forEach(el => {
-                if (!el.classList.contains('aud-status')) {
-                    el.addEventListener('input', () => processar());
-                    el.addEventListener('change', () => processar());
-                }
             });
 
             container.appendChild(row);
