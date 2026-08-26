@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Reparo Offline Infiltração | Cloud Realtime</title>
-    <!-- Biblioteca SheetJS para manipulação e exportação de Excel (.xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
@@ -147,14 +146,12 @@
         </div>
     </div>
 
-    <!-- Abas de Navegação -->
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="trocarAba('editor', event)">✏️ Edição & Report</button>
         <button class="tab-btn" onclick="trocarAba('historico', event)">📈 Histórico por Data</button>
         <button class="tab-btn" onclick="trocarAba('evolucao', event)">📊 Evolução & Indicadores</button>
     </div>
 
-    <!-- ABA 1: EDITOR -->
     <div id="tab-editor" class="container active">
         <div class="card">
             <div class="card-title">
@@ -228,7 +225,6 @@
         </div>
     </div>
 
-    <!-- ABA 2: HISTÓRICO POR DATA -->
     <div id="tab-historico" class="container">
         <div class="card" style="grid-column: span 2;">
             <div class="card-title">📈 Registros Salvos na Nuvem por Data</div>
@@ -252,7 +248,6 @@
         </div>
     </div>
 
-    <!-- ABA 3: EVOLUÇÃO E FILTROS EXECUTIVOS -->
     <div id="tab-evolucao" class="container">
         <div class="card" style="grid-column: span 2;">
             <div class="card-title">📊 Painel Executivo de Evolução & Desempenho</div>
@@ -283,12 +278,10 @@
             </div>
 
             <div class="kpi-grid" id="kpi-container-metrics">
-                <!-- Preenchido via JS -->
-            </div>
+                </div>
         </div>
     </div>
 
-    <!-- Modal de Exportação para Excel -->
     <div id="modalExport" class="modal-overlay">
         <div class="modal-card">
             <h3>📊 Exportar Relatório para Excel</h3>
@@ -322,7 +315,6 @@
 
     <div id="toast" class="toast">Texto copiado com sucesso!</div>
 
-    <!-- CONFIGURAÇÃO DO FIREBASE (REALTIME / onSnapshot Coletivo) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -455,9 +447,9 @@
             const container = document.getElementById('container-auditoria-30');
             const row = document.createElement('div');
             row.className = 'dynamic-row';
-            row.innerHTML = `<input type="text" class="input-auditoria-30" value="${val}" placeholder="Ex: SA6 - VK087991 - OK" oninput="processar()"><button type="button" class="btn-remove" onclick="removerCampo(this)">✕</button>`;
+            row.innerHTML = `<input type="text" class="input-auditoria-30" value="${val}" placeholder="Ex: SA6 - VK087991 - OK" oninput="gerarTextoWhatsApp()"><button type="button" class="btn-remove" onclick="removerCampo(this)">✕</button>`;
             container.appendChild(row);
-            processar();
+            gerarTextoWhatsApp();
         }
 
         function removerCampo(btn) { btn.parentElement.remove(); processar(); }
@@ -492,7 +484,8 @@
         }
 
         function preencherFormularioComDados(d) {
-            document.getElementById('container-auditoria-30').innerHTML = '';
+            const container = document.getElementById('container-auditoria-30');
+            container.innerHTML = '';
 
             if (!d) {
                 camposIDs.forEach(id => {
@@ -512,10 +505,9 @@
 
             if (d.auditoria30 && d.auditoria30.length > 0) {
                 d.auditoria30.forEach(v => {
-                    const container = document.getElementById('container-auditoria-30');
                     const row = document.createElement('div');
                     row.className = 'dynamic-row';
-                    row.innerHTML = `<input type="text" class="input-auditoria-30" value="${v}" placeholder="Ex: SA6 - VK087991 - OK" oninput="processar()"><button type="button" class="btn-remove" onclick="removerCampo(this)">✕</button>`;
+                    row.innerHTML = `<input type="text" class="input-auditoria-30" value="${v}" placeholder="Ex: SA6 - VK087991 - OK" oninput="gerarTextoWhatsApp()"><button type="button" class="btn-remove" onclick="removerCampo(this)">✕</button>`;
                     container.appendChild(row);
                 });
             }
