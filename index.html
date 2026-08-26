@@ -21,7 +21,6 @@
             --border-color: #475569;
         }
 
-        /* Trava a barra de rolagem e evita trepidação na tela */
         html {
             overflow-y: scroll;
             scrollbar-gutter: stable;
@@ -95,12 +94,9 @@
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .form-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; }
         label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
-        input[type="text"], input[type="number"], input[type="date"], select { width: 100%; padding: 8px; background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; color: #ffffff; font-size: 0.9rem; outline: none; position: relative; z-index: 2; }
+        input[type="text"], input[type="number"], input[type="date"], select { width: 100%; padding: 8px; background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; color: #ffffff; font-size: 0.9rem; outline: none; }
         
         select {
-            -webkit-appearance: menulist;
-            -moz-appearance: menulist;
-            appearance: menulist;
             cursor: pointer;
         }
 
@@ -125,7 +121,7 @@
             margin-top: 4px;
         }
 
-        button, .btn { cursor: pointer; touch-action: manipulation; position: relative; z-index: 2; }
+        button, .btn { cursor: pointer; touch-action: manipulation; }
         .btn-remove { background-color: #ef4444; color: white; border: none; border-radius: 6px; height: 38px; font-weight: bold; display: flex; align-items: center; justify-content: center; }
         .btn-add { background-color: #3b82f6; color: white; border: none; border-radius: 6px; padding: 10px 14px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; margin-bottom: 12px; width: 100%; justify-content: center; }
         .btn-save { background-color: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; }
@@ -528,21 +524,25 @@
                 </div>
             `;
 
+            // Tratamento isolado e seguro para disparar alteração sem bloquear os selects
+            const statusSelect = row.querySelector('.aud-status');
+            const boxNok = row.querySelector('.dynamic-row-nok-box');
+
+            statusSelect.addEventListener('change', () => {
+                if (statusSelect.value === 'NOK') {
+                    boxNok.style.display = 'block';
+                } else {
+                    boxNok.style.display = 'none';
+                    boxNok.querySelector('.aud-motivo').value = '';
+                }
+                processar();
+            });
+
             row.querySelectorAll('input, select').forEach(el => {
-                el.addEventListener('input', () => processar());
-                el.addEventListener('change', (e) => {
-                    if (e.target.classList.contains('aud-status')) {
-                        const card = e.target.closest('.dynamic-row-card');
-                        const boxNok = card.querySelector('.dynamic-row-nok-box');
-                        if (e.target.value === 'NOK') {
-                            boxNok.style.display = 'block';
-                        } else {
-                            boxNok.style.display = 'none';
-                            boxNok.querySelector('.aud-motivo').value = '';
-                        }
-                    }
-                    processar();
-                });
+                if (!el.classList.contains('aud-status')) {
+                    el.addEventListener('input', () => processar());
+                    el.addEventListener('change', () => processar());
+                }
             });
 
             container.appendChild(row);
