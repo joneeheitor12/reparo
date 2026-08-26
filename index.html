@@ -21,12 +21,21 @@
             --border-color: #475569;
         }
 
-        /* Evita instabilidade e trepidação na tela (barra de rolagem fixa) */
+        /* Trava a barra de rolagem e evita trepidação na tela */
         html {
             overflow-y: scroll;
+            scrollbar-gutter: stable;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; -webkit-font-smoothing: antialiased; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            -webkit-tap-highlight-color: transparent; 
+            -webkit-font-smoothing: antialiased;
+        }
+        
         body { background-color: var(--bg-primary); color: var(--text-main); padding: 20px 12px; min-height: 100vh; }
         
         .header { max-width: 1200px; margin: 0 auto 16px auto; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
@@ -64,13 +73,12 @@
             gap: 6px;
             color: #fff;
             background-color: var(--accent-green);
-            transition: opacity 0.2s;
         }
         .btn-tool:hover { opacity: 0.9; }
 
         /* Sistema de Abas */
         .nav-tabs { max-width: 1200px; margin: 0 auto 16px auto; display: flex; gap: 10px; flex-wrap: wrap; }
-        .tab-btn { background-color: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color); padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 0.85rem; }
+        .tab-btn { background-color: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color); padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
         .tab-btn:hover { border-color: var(--text-muted); color: #fff; }
         .tab-btn.active { background-color: var(--accent-blue); color: #fff; border-color: var(--accent-blue); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
 
@@ -98,7 +106,6 @@
 
         input:focus, select:focus { border-color: var(--accent-blue); }
 
-        /* Estilização para as linhas dinâmicas de Auditoria */
         .dynamic-row-card {
             background-color: rgba(255, 255, 255, 0.02);
             border: 1px solid var(--border-color);
@@ -106,7 +113,7 @@
             padding: 10px;
             margin-bottom: 10px;
             display: grid;
-            grid-template-columns: 110px 1fr 90px 90px 40px;
+            grid-template-columns: 120px 1fr 95px 90px 40px;
             gap: 8px;
             align-items: center;
         }
@@ -488,7 +495,7 @@
 
             row.innerHTML = `
                 <select class="aud-modelo">
-                    <option value="" disabled ${!modeloSel?'selected':''}>Selecione o Modelo</option>
+                    <option value="" disabled ${!modeloSel?'selected':''}>Modelo</option>
                     <option value="SA2" ${modeloSel==='SA2'?'selected':''}>SA2</option>
                     <option value="SA6" ${modeloSel==='SA6'?'selected':''}>SA6</option>
                     <option value="HA2" ${modeloSel==='HA2'?'selected':''}>HA2</option>
@@ -499,7 +506,7 @@
                 </select>
                 <input type="text" class="aud-chassi" value="${chassiVal}" placeholder="VIN">
                 <select class="aud-tempo">
-                    <option value="" disabled ${!tempoSel?'selected':''}>Selecione o Tempo</option>
+                    <option value="" disabled ${!tempoSel?'selected':''}>Tempo</option>
                     <option value="5 min" ${tempoSel==='5 min'?'selected':''}>5 min</option>
                     <option value="10 min" ${tempoSel==='10 min'?'selected':''}>10 min</option>
                     <option value="15 min" ${tempoSel==='15 min'?'selected':''}>15 min</option>
