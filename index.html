@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Reparo Offline Infiltração | Cloud Realtime</title>
+    <!-- Biblioteca SheetJS para manipulação e exportação de Excel (.xlsx) -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 
     <style>
@@ -20,20 +21,7 @@
             --border-color: #475569;
         }
 
-        html {
-            overflow-y: scroll;
-            scrollbar-gutter: stable;
-        }
-
-        * { 
-            box-sizing: border-box; 
-            margin: 0; 
-            padding: 0; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-            -webkit-tap-highlight-color: transparent; 
-            -webkit-font-smoothing: antialiased;
-        }
-        
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color: transparent; }
         body { background-color: var(--bg-primary); color: var(--text-main); padding: 20px 12px; min-height: 100vh; }
         
         .header { max-width: 1200px; margin: 0 auto 16px auto; border-bottom: 2px solid var(--border-color); padding-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
@@ -71,12 +59,13 @@
             gap: 6px;
             color: #fff;
             background-color: var(--accent-green);
+            transition: opacity 0.2s;
         }
         .btn-tool:hover { opacity: 0.9; }
 
         /* Sistema de Abas */
         .nav-tabs { max-width: 1200px; margin: 0 auto 16px auto; display: flex; gap: 10px; flex-wrap: wrap; }
-        .tab-btn { background-color: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color); padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; }
+        .tab-btn { background-color: var(--bg-card); color: var(--text-muted); border: 1px solid var(--border-color); padding: 10px 18px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; font-size: 0.85rem; }
         .tab-btn:hover { border-color: var(--text-muted); color: #fff; }
         .tab-btn.active { background-color: var(--accent-blue); color: #fff; border-color: var(--accent-blue); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
 
@@ -93,35 +82,13 @@
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .form-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; }
         label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
-        input[type="text"], input[type="number"], input[type="date"], select { width: 100%; padding: 8px; background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; color: #ffffff; font-size: 0.9rem; outline: none; }
-        
-        select {
-            cursor: pointer;
-        }
-
+        input[type="text"], input[type="number"], input[type="date"], select { width: 100%; padding: 8px; background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; color: #ffffff; font-size: 0.9rem; -webkit-appearance: none; outline: none; }
         input:focus, select:focus { border-color: var(--accent-blue); }
 
-        .dynamic-row-card {
-            background-color: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 10px;
-            display: grid;
-            grid-template-columns: 120px 1fr 95px 90px 40px;
-            gap: 8px;
-            align-items: center;
-        }
-        @media (max-width: 700px) {
-            .dynamic-row-card { grid-template-columns: 1fr 1fr; }
-        }
-        .dynamic-row-nok-box {
-            grid-column: 1 / -1;
-            margin-top: 4px;
-        }
-
+        .dynamic-row { display: flex; gap: 8px; margin-bottom: 8px; }
+        .dynamic-row input { flex: 1; }
         button, .btn { cursor: pointer; touch-action: manipulation; }
-        .btn-remove { background-color: #ef4444; color: white; border: none; border-radius: 6px; height: 38px; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        .btn-remove { background-color: #ef4444; color: white; border: none; border-radius: 6px; padding: 0 12px; font-weight: bold; }
         .btn-add { background-color: #3b82f6; color: white; border: none; border-radius: 6px; padding: 10px 14px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; margin-bottom: 12px; width: 100%; justify-content: center; }
         .btn-save { background-color: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; }
         .btn-reset { background-color: #ef4444; color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; }
@@ -180,12 +147,14 @@
         </div>
     </div>
 
+    <!-- Abas de Navegação -->
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="trocarAba('editor', event)">✏️ Edição & Report</button>
         <button class="tab-btn" onclick="trocarAba('historico', event)">📈 Histórico por Data</button>
         <button class="tab-btn" onclick="trocarAba('evolucao', event)">📊 Evolução & Indicadores</button>
     </div>
 
+    <!-- ABA 1: EDITOR -->
     <div id="tab-editor" class="container active">
         <div class="card">
             <div class="card-title">
@@ -207,6 +176,25 @@
                 </div>
             </div>
 
+            <div class="section-subtitle">📋 Reinspeção Padrão</div>
+            
+            <div class="model-block"><div class="model-title">EQE</div><div class="form-row"><div><label>✅ Reinspeção</label><input type="number" id="eqe_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovados</label><input type="number" id="eqe_nok" value="0" min="0" oninput="processar()"></div></div></div>
+            <div class="model-block"><div class="model-title">SONG (SA2)</div><div class="form-row"><div><label>✅ Reinspeção</label><input type="number" id="song_sa2_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="song_sa2_nok" value="0" min="0" oninput="processar()"></div></div></div>
+            <div class="model-block"><div class="model-title">KING</div><div class="form-row"><div><label>✅ Reinspeção</label><input type="number" id="king_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="king_nok" value="0" min="0" oninput="processar()"></div></div></div>
+            <div class="model-block"><div class="model-title">SONG (SA6)</div><div class="form-row"><div><label>✅ Reinspeção</label><input type="number" id="song_sa6_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="song_sa6_nok" value="0" min="0" oninput="processar()"></div></div></div>
+
+            <div class="section-subtitle">⏱️ Teste 30 Minutos (Resumo)</div>
+
+            <div class="model-block"><div class="model-title">SONG (SA6) 30 min</div><div class="form-row"><div><label>✅ Aprovado</label><input type="number" id="song_sa6_30_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="song_sa6_30_nok" value="0" min="0" oninput="processar()"></div></div></div>
+            <div class="model-block"><div class="model-title">SONG (SA2) 30 min</div><div class="form-row"><div><label>✅ Aprovado</label><input type="number" id="song_sa2_30_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="song_sa2_30_nok" value="0" min="0" oninput="processar()"></div></div></div>
+            <div class="model-block"><div class="model-title">EQE 30 min</div><div class="form-row"><div><label>✅ Aprovado</label><input type="number" id="eqe_30_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="eqe_30_nok" value="0" min="0" oninput="processar()"></div></div></div>
+            <div class="model-block"><div class="model-title">KING 30 min</div><div class="form-row"><div><label>✅ Aprovado</label><input type="number" id="king_30_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="king_30_nok" value="0" min="0" oninput="processar()"></div></div></div>
+
+            <div class="total-badge">
+                <span>🧮 Total Calculado:</span>
+                <span id="total-text">✅ 0 | ❌ 0</span>
+            </div>
+
             <div class="section-subtitle">🔋 Início do Turno</div>
             <div class="form-row-4">
                 <div><label>Reparo</label><input type="number" id="ini_reparo" value="0" min="0" oninput="processar()"></div>
@@ -223,19 +211,7 @@
                 <div><label>Elétrica</label><input type="number" id="fin_eletrica" value="0" min="0" oninput="processar()"></div>
             </div>
 
-            <div class="section-subtitle">📋 Reinspeção Padrão</div>
-            
-            <div class="model-block"><div class="model-title">EQE</div><div class="form-row"><div><label>✅ Reinspeção</label><input type="number" id="eqe_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovados</label><input type="number" id="eqe_nok" value="0" min="0" oninput="processar()"></div></div></div>
-            <div class="model-block"><div class="model-title">SONG (SA2)</div><div class="form-row"><div><label>✅ Reinspeção</label><input type="number" id="song_sa2_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="song_sa2_nok" value="0" min="0" oninput="processar()"></div></div></div>
-            <div class="model-block"><div class="model-title">KING</div><div class="form-row"><div><label>✅ Reinspeção</label><input type="number" id="king_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="king_nok" value="0" min="0" oninput="processar()"></div></div></div>
-            <div class="model-block"><div class="model-title">SONG (SA6)</div><div class="form-row"><div><label>✅ Reinspeção</label><input type="number" id="song_sa6_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="song_sa6_nok" value="0" min="0" oninput="processar()"></div></div></div>
-
-            <div class="total-badge">
-                <span>🧮 Total Calculado:</span>
-                <span id="total-text">✅ 0 | ❌ 0</span>
-            </div>
-
-            <div class="section-subtitle">🔎 Veículos Auditoria</div>
+            <div class="section-subtitle">🔎 Veículos Auditoria 30 Minutos</div>
             <div id="container-auditoria-30"></div>
             <button type="button" class="btn-add" onclick="adicionarCampoAuditoria30()">➕ Adicionar Veículo</button>
         </div>
@@ -252,6 +228,7 @@
         </div>
     </div>
 
+    <!-- ABA 2: HISTÓRICO POR DATA -->
     <div id="tab-historico" class="container">
         <div class="card" style="grid-column: span 2;">
             <div class="card-title">📈 Registros Salvos na Nuvem por Data</div>
@@ -261,18 +238,21 @@
                         <tr>
                             <th>Data</th>
                             <th>Turno</th>
-                            <th>Total OK</th>
-                            <th>Total NOK</th>
+                            <th>Total OK (Reinsp.)</th>
+                            <th>Total NOK (Reinsp.)</th>
+                            <th>Total OK (30min)</th>
+                            <th>Total NOK (30min)</th>
                         </tr>
                     </thead>
                     <tbody id="tabela-historico-corpo">
-                        <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Carregando dados...</td></tr>
+                        <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Carregando dados...</td></tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
 
+    <!-- ABA 3: EVOLUÇÃO E FILTROS EXECUTIVOS -->
     <div id="tab-evolucao" class="container">
         <div class="card" style="grid-column: span 2;">
             <div class="card-title">📊 Painel Executivo de Evolução & Desempenho</div>
@@ -303,10 +283,12 @@
             </div>
 
             <div class="kpi-grid" id="kpi-container-metrics">
-                </div>
+                <!-- Preenchido via JS -->
+            </div>
         </div>
     </div>
 
+    <!-- Modal de Exportação para Excel -->
     <div id="modalExport" class="modal-overlay">
         <div class="modal-card">
             <h3>📊 Exportar Relatório para Excel</h3>
@@ -340,6 +322,7 @@
 
     <div id="toast" class="toast">Texto copiado com sucesso!</div>
 
+    <!-- CONFIGURAÇÃO DO FIREBASE (REALTIME / onSnapshot Coletivo) -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, deleteDoc, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -369,6 +352,7 @@
             }
         }
 
+        // Ouvinte global em tempo real
         onSnapshot(collection(db, "reparos_offline"), (snapshot) => {
             cacheGlobalRegistros = {};
             snapshot.forEach(docSnap => {
@@ -378,8 +362,6 @@
             const dataSel = document.getElementById('dataReport').value;
             if (dataSel && cacheGlobalRegistros[dataSel] && !isRecebendoDaNuvem) {
                 preencherFormularioComDados(cacheGlobalRegistros[dataSel]);
-            } else if (dataSel && !cacheGlobalRegistros[dataSel] && !isRecebendoDaNuvem) {
-                preencherFormularioComDados(null);
             }
 
             if (document.getElementById('tab-historico').classList.contains('active')) {
@@ -423,7 +405,7 @@
     </script>
 
     <script>
-        const camposIDs = ['turno', 'eqe_ok', 'eqe_nok', 'song_sa2_ok', 'song_sa2_nok', 'king_ok', 'king_nok', 'song_sa6_ok', 'song_sa6_nok', 'ini_reparo', 'ini_reinspecao', 'ini_estrada', 'ini_eletrica', 'fin_reparo', 'fin_reinspecao', 'fin_estrada', 'fin_eletrica'];
+        const camposIDs = ['turno', 'eqe_ok', 'eqe_nok', 'song_sa2_ok', 'song_sa2_nok', 'king_ok', 'king_nok', 'song_sa6_ok', 'song_sa6_nok', 'song_sa6_30_ok', 'song_sa6_30_nok', 'song_sa2_30_ok', 'song_sa2_30_nok', 'eqe_30_ok', 'eqe_30_nok', 'king_30_ok', 'king_30_nok', 'ini_reparo', 'ini_reinspecao', 'ini_estrada', 'ini_eletrica', 'fin_reparo', 'fin_reinspecao', 'fin_estrada', 'fin_eletrica'];
 
         function getVal(id) { const v = parseInt(document.getElementById(id).value); return isNaN(v) ? 0 : v; }
 
@@ -469,84 +451,16 @@
             calcularEvolucaoPersonalizada();
         }
 
-        function adicionarCampoAuditoria30(dadosItem = null, isCarregando = false) {
+        function adicionarCampoAuditoria30(val = '') {
             const container = document.getElementById('container-auditoria-30');
             const row = document.createElement('div');
-            row.className = 'dynamic-row-card';
-
-            const modeloSel = dadosItem ? dadosItem.modelo || '' : '';
-            const chassiVal = dadosItem ? dadosItem.chassi || '' : '';
-            let tempoSel = dadosItem ? dadosItem.tempo || '' : '';
-            if(tempoSel) tempoSel = tempoSel.replace(' min', '').trim() + ' min';
-
-            const statusSel = dadosItem ? dadosItem.status || 'OK' : 'OK';
-            const motivoVal = dadosItem ? dadosItem.motivo || '' : '';
-
-            row.innerHTML = `
-                <select class="aud-modelo">
-                    <option value="" disabled ${!modeloSel?'selected':''}>Modelo</option>
-                    <option value="SA2" ${modeloSel==='SA2'?'selected':''}>SA2</option>
-                    <option value="SA6" ${modeloSel==='SA6'?'selected':''}>SA6</option>
-                    <option value="HA2" ${modeloSel==='HA2'?'selected':''}>HA2</option>
-                    <option value="EQE" ${modeloSel==='EQE'?'selected':''}>EQE</option>
-                    <option value="EQE PBP" ${modeloSel==='EQE PBP'?'selected':''}>EQE PBP</option>
-                    <option value="SC3H" ${modeloSel==='SC3H'?'selected':''}>SC3H</option>
-                    <option value="SC3H PBP" ${modeloSel==='SC3H PBP'?'selected':''}>SC3H PBP</option>
-                </select>
-                <input type="text" class="aud-chassi" value="${chassiVal}" placeholder="VIN">
-                <select class="aud-tempo">
-                    <option value="" disabled ${!tempoSel?'selected':''}>Tempo</option>
-                    <option value="5 min" ${tempoSel==='5 min'?'selected':''}>5 min</option>
-                    <option value="10 min" ${tempoSel==='10 min'?'selected':''}>10 min</option>
-                    <option value="15 min" ${tempoSel==='15 min'?'selected':''}>15 min</option>
-                    <option value="20 min" ${tempoSel==='20 min'?'selected':''}>20 min</option>
-                    <option value="30 min" ${tempoSel==='30 min'?'selected':''}>30 min</option>
-                    <option value="40 min" ${tempoSel==='40 min'?'selected':''}>40 min</option>
-                    <option value="50 min" ${tempoSel==='50 min'?'selected':''}>50 min</option>
-                    <option value="60 min" ${tempoSel==='60 min'?'selected':''}>60 min</option>
-                </select>
-                <select class="aud-status">
-                    <option value="OK" ${statusSel==='OK'?'selected':''}>OK</option>
-                    <option value="NOK" ${statusSel==='NOK'?'selected':''}>NOK</option>
-                </select>
-                <button type="button" class="btn-remove" onclick="removerCampoAuditoria(this)">✕</button>
-                <div class="dynamic-row-nok-box" style="display: ${statusSel === 'NOK' ? 'block' : 'none'};">
-                    <input type="text" class="aud-motivo" value="${motivoVal}" placeholder="Informe o motivo do NOK...">
-                </div>
-            `;
-
-            // Vincula os eventos com debounce / atraso para evitar conflito de fechamento dos selects
-            const statusSelect = row.querySelector('.aud-status');
-            const boxNok = row.querySelector('.dynamic-row-nok-box');
-            const motivoInput = row.querySelector('.aud-motivo');
-
-            statusSelect.addEventListener('change', () => {
-                if (statusSelect.value === 'NOK') {
-                    boxNok.style.display = 'block';
-                } else {
-                    boxNok.style.display = 'none';
-                    motivoInput.value = '';
-                }
-                processar();
-            });
-
-            row.querySelectorAll('input, select').forEach(el => {
-                if (!el.classList.contains('aud-status')) {
-                    el.addEventListener('input', () => processar());
-                    el.addEventListener('change', () => processar());
-                }
-            });
-
+            row.className = 'dynamic-row';
+            row.innerHTML = `<input type="text" class="input-auditoria-30" value="${val}" placeholder="Ex: SA6 - VK087991 - OK" oninput="processar()"><button type="button" class="btn-remove" onclick="removerCampo(this)">✕</button>`;
             container.appendChild(row);
-            if (!isCarregando) {
-                processar();
-            }
+            processar();
         }
 
-        function removerCampoAuditoria(btn) { 
-            btn.closest('.dynamic-row-card').remove(); 
-            processar(); 
-        }
+        function removerCampo(btn) { btn.parentElement.remove(); processar(); }
 
         function extrairDados() {
             const dados = {};
@@ -554,16 +468,7 @@
                 const el = document.getElementById(id);
                 if (el) dados[id] = el.value;
             });
-            
-            dados.auditoria30Objs = Array.from(document.querySelectorAll('.dynamic-row-card')).map(card => {
-                return {
-                    modelo: card.querySelector('.aud-modelo').value,
-                    chassi: card.querySelector('.aud-chassi').value.trim(),
-                    tempo: card.querySelector('.aud-tempo').value,
-                    status: card.querySelector('.aud-status').value,
-                    motivo: card.querySelector('.aud-motivo').value.trim()
-                };
-            });
+            dados.auditoria30 = Array.from(document.querySelectorAll('.input-auditoria-30')).map(i => i.value);
             return dados;
         }
 
@@ -605,9 +510,13 @@
                 }
             });
 
-            if (d.auditoria30Objs && d.auditoria30Objs.length > 0) {
-                d.auditoria30Objs.forEach(item => {
-                    adicionarCampoAuditoria30(item, true);
+            if (d.auditoria30 && d.auditoria30.length > 0) {
+                d.auditoria30.forEach(v => {
+                    const container = document.getElementById('container-auditoria-30');
+                    const row = document.createElement('div');
+                    row.className = 'dynamic-row';
+                    row.innerHTML = `<input type="text" class="input-auditoria-30" value="${v}" placeholder="Ex: SA6 - VK087991 - OK" oninput="processar()"><button type="button" class="btn-remove" onclick="removerCampo(this)">✕</button>`;
+                    container.appendChild(row);
                 });
             }
             gerarTextoWhatsApp();
@@ -616,34 +525,25 @@
         function trocarData() {
             const dataSel = document.getElementById('dataReport').value;
             const global = window.obterCacheGlobal ? window.obterCacheGlobal() : {};
-            
-            isRecebendoDaNuvem = true;
             if (global[dataSel]) {
                 preencherFormularioComDados(global[dataSel]);
             } else {
                 const salvoLocal = localStorage.getItem(`app_reparo_offline_${dataSel}`);
                 preencherFormularioComDados(salvoLocal ? JSON.parse(salvoLocal) : null);
             }
-            setTimeout(() => { isRecebendoDaNuvem = false; }, 200);
         }
 
         function processar() {
-            if (isRecebendoDaNuvem) return;
             salvarMemoria();
             gerarTextoWhatsApp();
         }
 
         function calcularTotaisRegistro(r) {
-            let okReinsp = (parseInt(r.eqe_ok)||0) + (parseInt(r.song_sa2_ok)||0) + (parseInt(r.king_ok)||0) + (parseInt(r.song_sa6_ok)||0);
-            let nokReinsp = (parseInt(r.eqe_nok)||0) + (parseInt(r.song_sa2_nok)||0) + (parseInt(r.king_nok)||0) + (parseInt(r.song_sa6_nok)||0);
-
-            if (r.auditoria30Objs && Array.isArray(r.auditoria30Objs)) {
-                r.auditoria30Objs.forEach(item => {
-                    if (item.status === 'OK') okReinsp++;
-                    else if (item.status === 'NOK') nokReinsp++;
-                });
-            }
-            return { okReinsp, nokReinsp };
+            const okReinsp = (parseInt(r.eqe_ok)||0) + (parseInt(r.song_sa2_ok)||0) + (parseInt(r.king_ok)||0) + (parseInt(r.song_sa6_ok)||0);
+            const nokReinsp = (parseInt(r.eqe_nok)||0) + (parseInt(r.song_sa2_nok)||0) + (parseInt(r.king_nok)||0) + (parseInt(r.song_sa6_nok)||0);
+            const ok30 = (parseInt(r.song_sa6_30_ok)||0) + (parseInt(r.song_sa2_30_ok)||0) + (parseInt(r.eqe_30_ok)||0) + (parseInt(r.king_30_ok)||0);
+            const nok30 = (parseInt(r.song_sa6_30_nok)||0) + (parseInt(r.song_sa2_30_nok)||0) + (parseInt(r.eqe_30_nok)||0) + (parseInt(r.king_30_nok)||0);
+            return { okReinsp, nokReinsp, ok30, nok30 };
         }
 
         function gerarTextoWhatsApp() {
@@ -651,38 +551,16 @@
             const dataBR = formatarDataBR(dataIso);
             const turno = document.getElementById('turno').value;
 
-            let total_ok = getVal('eqe_ok') + getVal('song_sa2_ok') + getVal('king_ok') + getVal('song_sa6_ok');
-            let total_nok = getVal('eqe_nok') + getVal('song_sa2_nok') + getVal('king_nok') + getVal('song_sa6_nok');
-
-            let auditTextArr = [];
-            document.querySelectorAll('.dynamic-row-card').forEach(card => {
-                const mod = card.querySelector('.aud-modelo').value;
-                const ch = card.querySelector('.aud-chassi').value.trim();
-                const tp = card.querySelector('.aud-tempo').value;
-                const st = card.querySelector('.aud-status').value;
-                const mot = card.querySelector('.aud-motivo').value.trim();
-                
-                if (st === 'OK') total_ok++;
-                else if (st === 'NOK') total_nok++;
-
-                if (ch) {
-                    let linha = `• ${mod ? mod + ':' : ''}${ch} - ${tp || '30 min'} - ${st}`;
-                    if (st === 'NOK' && mot) linha += ` (${mot})`;
-                    auditTextArr.push(linha);
-                }
-            });
+            const total_ok = getVal('eqe_ok') + getVal('song_sa2_ok') + getVal('king_ok') + getVal('song_sa6_ok') + getVal('song_sa6_30_ok') + getVal('song_sa2_30_ok') + getVal('eqe_30_ok') + getVal('king_30_ok');
+            const total_nok = getVal('eqe_nok') + getVal('song_sa2_nok') + getVal('king_nok') + getVal('song_sa6_nok') + getVal('song_sa6_30_nok') + getVal('song_sa2_30_nok') + getVal('eqe_30_nok') + getVal('king_30_nok');
 
             const totalTextEl = document.getElementById('total-text');
             if (totalTextEl) totalTextEl.innerText = `✅ ${total_ok} | ❌ ${total_nok}`;
 
+            const auditoria30 = Array.from(document.querySelectorAll('.input-auditoria-30')).map(i => i.value.trim()).filter(v => v).join('\n');
+
             let text = `➡️ REPARO INFILTRAÇÃO
 📅 ${dataBR} | ${turno}
-
-🔋 INÍCIO DO TURNO
-• Reparo: ${getVal('ini_reparo')} | Reinspeção: ${getVal('ini_reinspecao')} | Estrada: ${getVal('ini_estrada')} | Elétrica: ${getVal('ini_eletrica')}
-
-🪫 FINAL DO TURNO
-• Reparo: ${getVal('fin_reparo')} | Reinspeção: ${getVal('fin_reinspecao')} | Estrada: ${getVal('fin_estrada')} | Elétrica: ${getVal('fin_eletrica')}
 
 📋 REINSPEÇÃO PADRÃO
 • EQE: ✅ ${getVal('eqe_ok')} | ❌ ${getVal('eqe_nok')}
@@ -690,11 +568,21 @@
 • KING: ✅ ${getVal('king_ok')} | ❌ ${getVal('king_nok')}
 • SONG (SA6): ✅ ${getVal('song_sa6_ok')} | ❌ ${getVal('song_sa6_nok')}
 
-📊 TOTAL: ✅ ${total_ok} | ❌ ${total_nok}`;
+⏱️ TESTE 30 MINUTOS
+• SONG (SA6): ✅ ${getVal('song_sa6_30_ok')} | ❌ ${getVal('song_sa6_30_nok')}
+• SONG (SA2): ✅ ${getVal('song_sa2_30_ok')} | ❌ ${getVal('song_sa2_30_nok')}
+• EQE: ✅ ${getVal('eqe_30_ok')} | ❌ ${getVal('eqe_30_nok')}
+• KING: ✅ ${getVal('king_30_ok')} | ❌ ${getVal('king_30_nok')}
 
-            if (auditTextArr.length > 0) {
-                text += `\n\n🔎 AUDITORIA DE VEÍCULOS:\n` + auditTextArr.join('\n');
-            }
+📊 TOTAL: ✅ ${total_ok} | ❌ ${total_nok}
+
+🔋 INÍCIO DO TURNO
+• Reparo: ${getVal('ini_reparo')} | Reinspeção: ${getVal('ini_reinspecao')} | Estrada: ${getVal('ini_estrada')} | Elétrica: ${getVal('ini_eletrica')}
+
+🪫 FINAL DO TURNO
+• Reparo: ${getVal('fin_reparo')} | Reinspeção: ${getVal('fin_reinspecao')} | Estrada: ${getVal('fin_estrada')} | Elétrica: ${getVal('fin_eletrica')}`;
+
+            if (auditoria30) text += `\n\n🔎 CARROS AUDITORIA 30 MIN:\n${auditoria30}`;
             
             const previewEl = document.getElementById('preview');
             if(previewEl) previewEl.innerText = text;
@@ -707,7 +595,7 @@
             const chaves = Object.keys(global).sort().reverse();
 
             if (chaves.length === 0) {
-                corpo.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Nenhum dado registrado.</td></tr>`;
+                corpo.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Nenhum dado registrado.</td></tr>`;
                 return;
             }
 
@@ -720,6 +608,8 @@
                     <td><b>${r.turno || 'TURNO A'}</b></td>
                     <td>✅ ${t.okReinsp}</td>
                     <td>❌ ${t.nokReinsp}</td>
+                    <td>✅ ${t.ok30}</td>
+                    <td>❌ ${t.nok30}</td>
                 </tr>`;
             });
         }
@@ -764,12 +654,14 @@
                 chaves.forEach(dtReg => filtrados.push(global[dtReg]));
             }
 
-            let tOkReinsp = 0, tNokReinsp = 0, totalGeral = 0;
+            let tOkReinsp = 0, tNokReinsp = 0, tOk30 = 0, tNok30 = 0, totalGeral = 0;
             filtrados.forEach(r => {
                 const t = calcularTotaisRegistro(r);
                 tOkReinsp += t.okReinsp;
                 tNokReinsp += t.nokReinsp;
-                totalGeral += (t.okReinsp + t.nokReinsp);
+                tOk30 += t.ok30;
+                tNok30 += t.nok30;
+                totalGeral += (t.okReinsp + t.nokReinsp + t.ok30 + t.nok30);
             });
 
             container.innerHTML = `
@@ -781,6 +673,14 @@
                     <h4>❌ Total Reinspeção NOK</h4>
                     <div class="val">${tNokReinsp}</div>
                 </div>
+                <div class="kpi-card" style="border-left-color: var(--accent-blue)">
+                    <h4>✅ Total 30 Min OK</h4>
+                    <div class="val">${tOk30}</div>
+                </div>
+                <div class="kpi-card" style="border-left-color: var(--accent-amber)">
+                    <h4>❌ Total 30 Min NOK</h4>
+                    <div class="val">${tNok30}</div>
+                </div>
                 <div class="kpi-card" style="border-left-color: #8b5cf6">
                     <h4>📊 Volume Geral Analisado</h4>
                     <div class="val">${totalGeral} itens</div>
@@ -788,6 +688,7 @@
             `;
         }
 
+        // Funções para Exportar Excel via Modal
         function abrirModalExportacao() {
             document.getElementById('modalExport').style.display = 'flex';
             tratarOpcaoModalExport();
@@ -809,6 +710,7 @@
             const hoje = new Date();
             let listaFinal = [];
             let nomeSufixo = "";
+
             let chavesFiltradas = [];
 
             if (opc === 'DIA_SELECIONADO') {
@@ -837,17 +739,9 @@
             chavesFiltradas.sort().forEach(dt => {
                 const r = global[dt];
                 if (r) {
-                    let baseObj = {
+                    listaFinal.push({
                         "Data": formatarDataBR(dt),
                         "Turno": r.turno || "TURNO A",
-                        "Início Reparo": r.ini_reparo || 0,
-                        "Início Reinspeção": r.ini_reinspecao || 0,
-                        "Início Estrada": r.ini_estrada || 0,
-                        "Início Elétrica": r.ini_eletrica || 0,
-                        "Fim Reparo": r.fin_reparo || 0,
-                        "Fim Reinspeção": r.fin_reinspecao || 0,
-                        "Fim Estrada": r.fin_estrada || 0,
-                        "Fim Elétrica": r.fin_eletrica || 0,
                         "EQE (OK)": r.eqe_ok || 0,
                         "EQE (NOK)": r.eqe_nok || 0,
                         "SONG SA2 (OK)": r.song_sa2_ok || 0,
@@ -855,16 +749,24 @@
                         "KING (OK)": r.king_ok || 0,
                         "KING (NOK)": r.king_nok || 0,
                         "SONG SA6 (OK)": r.song_sa6_ok || 0,
-                        "SONG SA6 (NOK)": r.song_sa6_nok || 0
-                    };
-
-                    if (r.auditoria30Objs && r.auditoria30Objs.length > 0) {
-                        r.auditoria30Objs.forEach((item, index) => {
-                            baseObj[`Auditoria Veículo ${index+1}`] = `${item.modelo || ''} - ${item.chassi} - ${item.tempo || ''} - ${item.status}${item.motivo ? ' ('+item.motivo+')' : ''}`;
-                        });
-                    }
-
-                    listaFinal.push(baseObj);
+                        "SONG SA6 (NOK)": r.song_sa6_nok || 0,
+                        "SONG SA6 30min (OK)": r.song_sa6_30_ok || 0,
+                        "SONG SA6 30min (NOK)": r.song_sa6_30_nok || 0,
+                        "SONG SA2 30min (OK)": r.song_sa2_30_ok || 0,
+                        "SONG SA2 30min (NOK)": r.song_sa2_30_nok || 0,
+                        "EQE 30min (OK)": r.eqe_30_ok || 0,
+                        "EQE 30min (NOK)": r.eqe_30_nok || 0,
+                        "KING 30min (OK)": r.king_30_ok || 0,
+                        "KING 30min (NOK)": r.king_30_nok || 0,
+                        "Início Reparo": r.ini_reparo || 0,
+                        "Início Reinspeção": r.ini_reinspecao || 0,
+                        "Início Estrada": r.ini_estrada || 0,
+                        "Início Elétrica": r.ini_eletrica || 0,
+                        "Fim Reparo": r.fin_reparo || 0,
+                        "Fim Reinspeção": r.fin_reinspecao || 0,
+                        "Fim Estrada": r.fin_estrada || 0,
+                        "Fim Elétrica": r.fin_eletrica || 0
+                    });
                 }
             });
 
@@ -917,7 +819,6 @@
 
         window.onload = function() {
             setHoje();
-            trocarData();
         };
     </script>
 </body>
