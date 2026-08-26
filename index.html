@@ -95,7 +95,7 @@
         .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         .form-row-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; }
         label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; font-weight: 500; }
-        input[type="text"], input[type="number"], input[type="date"], select { width: 100%; padding: 8px; background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; color: #ffffff; font-size: 0.9rem; outline: none; }
+        input[type="text"], input[type="number"], input[type="date"], select { width: 100%; padding: 8px; background-color: var(--bg-input); border: 1px solid var(--border-color); border-radius: 6px; color: #ffffff; font-size: 0.9rem; outline: none; position: relative; z-index: 2; }
         
         select {
             -webkit-appearance: menulist;
@@ -125,7 +125,7 @@
             margin-top: 4px;
         }
 
-        button, .btn { cursor: pointer; touch-action: manipulation; }
+        button, .btn { cursor: pointer; touch-action: manipulation; position: relative; z-index: 2; }
         .btn-remove { background-color: #ef4444; color: white; border: none; border-radius: 6px; height: 38px; font-weight: bold; display: flex; align-items: center; justify-content: center; }
         .btn-add { background-color: #3b82f6; color: white; border: none; border-radius: 6px; padding: 10px 14px; font-size: 0.85rem; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; margin-bottom: 12px; width: 100%; justify-content: center; }
         .btn-save { background-color: var(--accent-blue); color: white; border: none; border-radius: 6px; padding: 6px 12px; font-size: 0.8rem; font-weight: bold; }
@@ -392,7 +392,6 @@
             if (dataSel && cacheGlobalRegistros[dataSel] && !isRecebendoDaNuvem) {
                 preencherFormularioComDados(cacheGlobalRegistros[dataSel]);
             } else if (dataSel && !cacheGlobalRegistros[dataSel] && !isRecebendoDaNuvem) {
-                // Se a data selecionada não existe na nuvem, limpa o formulário mantendo os dados de hoje seguros
                 preencherFormularioComDados(null);
             }
 
