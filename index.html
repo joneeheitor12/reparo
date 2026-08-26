@@ -391,6 +391,9 @@
             const dataSel = document.getElementById('dataReport').value;
             if (dataSel && cacheGlobalRegistros[dataSel] && !isRecebendoDaNuvem) {
                 preencherFormularioComDados(cacheGlobalRegistros[dataSel]);
+            } else if (dataSel && !cacheGlobalRegistros[dataSel] && !isRecebendoDaNuvem) {
+                // Se a data selecionada não existe na nuvem, limpa o formulário mantendo os dados de hoje seguros
+                preencherFormularioComDados(null);
             }
 
             if (document.getElementById('tab-historico').classList.contains('active')) {
@@ -613,10 +616,6 @@
                 d.auditoria30Objs.forEach(item => {
                     adicionarCampoAuditoria30(item);
                 });
-            } else if (d.auditoria30 && d.auditoria30.length > 0) {
-                d.auditoria30.forEach(v => {
-                    adicionarCampoAuditoria30({ modelo: 'SA2', chassi: v, tempo: '30 min', status: 'OK' });
-                });
             }
             gerarTextoWhatsApp();
         }
@@ -624,15 +623,19 @@
         function trocarData() {
             const dataSel = document.getElementById('dataReport').value;
             const global = window.obterCacheGlobal ? window.obterCacheGlobal() : {};
+            
+            isRecebendoDaNuvem = true;
             if (global[dataSel]) {
                 preencherFormularioComDados(global[dataSel]);
             } else {
                 const salvoLocal = localStorage.getItem(`app_reparo_offline_${dataSel}`);
                 preencherFormularioComDados(salvoLocal ? JSON.parse(salvoLocal) : null);
             }
+            setTimeout(() => { isRecebendoDaNuvem = false; }, 200);
         }
 
         function processar() {
+            if (isRecebendoDaNuvem) return;
             salvarMemoria();
             gerarTextoWhatsApp();
         }
@@ -921,6 +924,7 @@
 
         window.onload = function() {
             setHoje();
+            trocarData();
         };
     </script>
 </body>
