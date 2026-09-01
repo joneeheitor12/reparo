@@ -218,6 +218,7 @@
             <div class="model-block"><div class="model-title">SONG (SA2)</div><div class="form-row"><div><label>✅ Reinspeção</label><input type="number" id="song_sa2_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="song_sa2_nok" value="0" min="0" oninput="processar()"></div></div></div>
             <div class="model-block"><div class="model-title">KING</div><div class="form-row"><div><label>✅ Reinspeção</label><input type="number" id="king_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="king_nok" value="0" min="0" oninput="processar()"></div></div></div>
             <div class="model-block"><div class="model-title">SONG (SA6)</div><div class="form-row"><div><label>✅ Reinspeção</label><input type="number" id="song_sa6_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="song_sa6_nok" value="0" min="0" oninput="processar()"></div></div></div>
+            <div class="model-block"><div class="model-title">SC3H</div><div class="form-row"><div><label>✅ Reinspeção</label><input type="number" id="sc3h_ok" value="0" min="0" oninput="processar()"></div><div><label>❌ Reprovado</label><input type="number" id="sc3h_nok" value="0" min="0" oninput="processar()"></div></div></div>
 
             <div class="section-subtitle">🔎 Veículos Auditoria</div>
             <div id="container-auditoria-30"></div>
@@ -412,7 +413,7 @@
     </script>
 
     <script>
-        const camposIDs = ['turno', 'eqe_ok', 'eqe_nok', 'song_sa2_ok', 'song_sa2_nok', 'king_ok', 'king_nok', 'song_sa6_ok', 'song_sa6_nok', 'ini_reparo', 'ini_reinspecao', 'ini_estrada', 'ini_eletrica', 'fin_reparo', 'fin_reinspecao', 'fin_estrada', 'fin_eletrica'];
+        const camposIDs = ['turno', 'eqe_ok', 'eqe_nok', 'song_sa2_ok', 'song_sa2_nok', 'king_ok', 'king_nok', 'song_sa6_ok', 'song_sa6_nok', 'sc3h_ok', 'sc3h_nok', 'ini_reparo', 'ini_reinspecao', 'ini_estrada', 'ini_eletrica', 'fin_reparo', 'fin_reinspecao', 'fin_estrada', 'fin_eletrica'];
 
         function getVal(id) { const v = parseInt(document.getElementById(id).value); return isNaN(v) ? 0 : v; }
 
@@ -516,7 +517,6 @@
                 processar();
             });
 
-            // CORREÇÃO DEFINITIVA: Utiliza 'change' para inputs e selects, evitando perda de foco ao digitar letra por letra.
             row.querySelectorAll('input, select').forEach(el => {
                 if (!el.classList.contains('aud-status')) {
                     el.addEventListener('change', () => processar());
@@ -625,8 +625,8 @@
         }
 
         function calcularTotaisRegistro(r) {
-            let okReinsp = (parseInt(r.eqe_ok)||0) + (parseInt(r.song_sa2_ok)||0) + (parseInt(r.king_ok)||0) + (parseInt(r.song_sa6_ok)||0);
-            let nokReinsp = (parseInt(r.eqe_nok)||0) + (parseInt(r.song_sa2_nok)||0) + (parseInt(r.king_nok)||0) + (parseInt(r.song_sa6_nok)||0);
+            let okReinsp = (parseInt(r.eqe_ok)||0) + (parseInt(r.song_sa2_ok)||0) + (parseInt(r.king_ok)||0) + (parseInt(r.song_sa6_ok)||0) + (parseInt(r.sc3h_ok)||0);
+            let nokReinsp = (parseInt(r.eqe_nok)||0) + (parseInt(r.song_sa2_nok)||0) + (parseInt(r.king_nok)||0) + (parseInt(r.song_sa6_nok)||0) + (parseInt(r.sc3h_nok)||0);
 
             const objs = r.auditoriaObjs || r.auditoria30Objs;
             if (objs && Array.isArray(objs)) {
@@ -643,8 +643,8 @@
             const dataBR = formatarDataBR(dataIso);
             const turno = document.getElementById('turno').value;
 
-            let total_ok = getVal('eqe_ok') + getVal('song_sa2_ok') + getVal('king_ok') + getVal('song_sa6_ok');
-            let total_nok = getVal('eqe_nok') + getVal('song_sa2_nok') + getVal('king_nok') + getVal('song_sa6_nok');
+            let total_ok = getVal('eqe_ok') + getVal('song_sa2_ok') + getVal('king_ok') + getVal('song_sa6_ok') + getVal('sc3h_ok');
+            let total_nok = getVal('eqe_nok') + getVal('song_sa2_nok') + getVal('king_nok') + getVal('song_sa6_nok') + getVal('sc3h_nok');
 
             let auditTextArr = [];
             document.querySelectorAll('.dynamic-row-card').forEach(card => {
@@ -675,6 +675,7 @@
 • SONG (SA2): ✅ ${getVal('song_sa2_ok')} | ❌ ${getVal('song_sa2_nok')}
 • KING: ✅ ${getVal('king_ok')} | ❌ ${getVal('king_nok')}
 • SONG (SA6): ✅ ${getVal('song_sa6_ok')} | ❌ ${getVal('song_sa6_nok')}
+• SC3H: ✅ ${getVal('sc3h_ok')} | ❌ ${getVal('sc3h_nok')}
 
 📊 TOTAL: ✅ ${total_ok} | ❌ ${total_nok}`;
 
@@ -847,7 +848,9 @@
                         "KING (OK)": r.king_ok || 0,
                         "KING (NOK)": r.king_nok || 0,
                         "SONG SA6 (OK)": r.song_sa6_ok || 0,
-                        "SONG SA6 (NOK)": r.song_sa6_nok || 0
+                        "SONG SA6 (NOK)": r.song_sa6_nok || 0,
+                        "SC3H (OK)": r.sc3h_ok || 0,
+                        "SC3H (NOK)": r.sc3h_nok || 0
                     };
 
                     const objs = r.auditoriaObjs || r.auditoria30Objs;
